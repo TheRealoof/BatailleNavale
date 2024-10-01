@@ -21,6 +21,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.MapPost("/exchange-code", async (HttpRequest request) =>
+{
+    // get code from request
+    var code = request.Query["code"];
+    // code to exchange code for token
+    
+    return code;
+});
+
 // register player by name returns player object
 app.MapPost("/api/player", (GameService gameService, string name) =>
     {

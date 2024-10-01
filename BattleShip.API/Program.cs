@@ -1,4 +1,9 @@
+using System.Security.Claims;
+using Auth0.AspNetCore.Authentication;
 using BattleShip.API;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAuth0WebAppAuthentication(options =>
+{
+    options.Domain = builder.Configuration["Auth0:Domain"]!;
+    options.ClientId = builder.Configuration["Auth0:ClientId"]!;
+});
+builder.Services.AddControllersWithViews();
 
 builder.Services.AddSingleton<GameService>();
 
@@ -19,7 +31,45 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseHttpsRedirection();
+
+app.MapPost("/login", async (context) =>
+{
+    var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
+        // Indicate here where Auth0 should redirect the user after a login.
+        // Note that the resulting absolute Uri must be added to the
+        // **Allowed Callback URLs** settings for the app.
+        .WithRedirectUri("/")
+        .Build();
+
+    await context.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
+});
+
+app.MapPost("/logout", [Authorize] async (context) =>
+{
+    var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()
+        // Indicate here where Auth0 should redirect the user after a logout.
+        // Note that the resulting absolute Uri must be added to the
+        // **Allowed Logout URLs** settings for the app.
+        .WithRedirectUri("/")
+        .Build();
+
+    await context.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+});
+
+app.MapPost("/profile", [Authorize](context) =>
+{
+    var user = context.User;
+    var claims = user.Claims.Select(c => new { c.Type, c.Value });
+    string? userName = user.Identity?.Name;
+    string? userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+    Results.Ok(new { userName, userEmail });
+    return Task.CompletedTask;
+});
 
 app.MapPost("/exchange-code", async (HttpRequest request) =>
 {

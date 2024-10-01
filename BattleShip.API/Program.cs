@@ -1,9 +1,14 @@
+using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Security.Principal;
 using Auth0.AspNetCore.Authentication;
 using BattleShip.API;
+using BattleShip.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,11 +18,33 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddAuth0WebAppAuthentication(options =>
+builder.Services.AddCors(options =>
 {
-    options.Domain = builder.Configuration["Auth0:Domain"]!;
-    options.ClientId = builder.Configuration["Auth0:ClientId"]!;
+    options.AddPolicy("AllowAllOrigins", policy =>
+    {
+        policy.AllowAnyOrigin();
+        policy.AllowAnyMethod();
+        policy.AllowAnyHeader();
+    });
 });
+
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["Auth0:Authority"];
+        options.Audience = builder.Configuration["Auth0:Audience"];
+        //options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        //{
+        //    ValidAudience = builder.Configuration["Auth0:Audience"],
+        //    ValidIssuer = builder.Configuration["Auth0:Authority"]
+        //};
+    });
+
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddSingleton<GameService>();
@@ -31,10 +58,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowAllOrigins");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseHttpsRedirection();
+
+app.MapGet("/test", async (HttpRequest request) =>
+{
+    return new Profile()
+    {
+        UserName = "Test name",
+        Email = "test@email.com"
+    };
+}).WithName("Test").WithOpenApi();
 
 app.MapPost("/login", async (context) =>
 {
@@ -46,7 +84,7 @@ app.MapPost("/login", async (context) =>
         .Build();
 
     await context.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
-});
+}).WithName("Login").WithOpenApi();
 
 app.MapPost("/logout", [Authorize] async (context) =>
 {
@@ -59,40 +97,67 @@ app.MapPost("/logout", [Authorize] async (context) =>
 
     await context.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-});
+}).WithName("Logout").WithOpenApi();
 
-app.MapPost("/profile", [Authorize](context) =>
+app.MapGet("/profile", [Authorize] (HttpContext context) =>
 {
-    var user = context.User;
-    var claims = user.Claims.Select(c => new { c.Type, c.Value });
-    string? userName = user.Identity?.Name;
-    string? userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-    Results.Ok(new { userName, userEmail });
-    return Task.CompletedTask;
-});
+    Console.WriteLine("Profile endpoint hit");
+    ClaimsPrincipal user = context.User;
+    Console.WriteLine("User: " + user);
+    IIdentity? identity = user.Identity;
+    Console.WriteLine("Identity: " + identity + " Auth: " + identity?.IsAuthenticated);
+    string? username = identity?.Name;
+    Console.WriteLine("Username: " + username);
+
+    // print all claims
+    foreach (var claim in user.Claims)
+    {
+        Console.WriteLine(claim.Type + " : " + claim.Value);
+    }
+    
+    var nameIdentifier = user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+    Console.WriteLine("NameIdentifier: " + nameIdentifier);
+    
+    var httpClient = new HttpClient();
+    var authHeader = context.Request.Headers["Authorization"].ToString();
+    if (!authHeader.StartsWith("Bearer "))
+    {
+        return Results.Unauthorized();
+    }
+    
+    var token = authHeader.Substring("Bearer ".Length).Trim();
+    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    var response = httpClient.GetAsync(" https://dev-xh5hwto5vb2xyc1m.us.auth0.com/userinfo").Result;
+    
+    if (!response.IsSuccessStatusCode)
+        return Results.Unauthorized();
+    
+    var content = response.Content.ReadAsStringAsync().Result;
+    Console.WriteLine("Content: " + content);
+    
+    return Results.Ok(new Profile
+    {
+        UserName = username,
+        Email = null
+    });
+}).WithName("Profile").WithOpenApi();
 
 app.MapPost("/exchange-code", async (HttpRequest request) =>
 {
     // get code from request
     var code = request.Query["code"];
     // code to exchange code for token
-    
+
     return code;
 });
 
 // register player by name returns player object
-app.MapPost("/api/player", (GameService gameService, string name) =>
-    {
-        gameService.PlayerManager.AddPlayer(name);
-    })
+app.MapPost("/api/player", (GameService gameService, string name) => { gameService.PlayerManager.AddPlayer(name); })
     .WithName("CreatePlayer")
     .WithOpenApi();
 
 // create new game returns the players boats and game id
-app.MapPost("/api/game", (GameService gameService) =>
-    {
-        gameService.GameManager.CreateGame();
-    })
+app.MapPost("/api/game", (GameService gameService) => { gameService.GameManager.CreateGame(); })
     .WithName("CreateGame")
     .WithOpenApi();
 

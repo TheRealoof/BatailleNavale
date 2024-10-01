@@ -1,7 +1,64 @@
 ﻿@page "/"
+@using BattleShip.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject HttpClient Http
+@inject IAccessTokenProvider TokenProvider
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+@if (_profile != null)
+{
+    <p>Username: @_profile.UserName</p>
+}
+else
+{
+    <p>Chargement...</p>
+}
+
+<p>Token: @_token</p>
+
+@code {
+    private Profile? _profile = null;
+    private string? _token = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _token = await GetAccessToken();
+        await RequestProfile();
+    }
+
+    private async Task RequestProfile()
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, "profile");
+            request.Headers.Add("Authorization", $"Bearer {_token}");
+            var response = await Http.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+                return;
+            _profile = await response.Content.ReadFromJsonAsync<Profile>();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    
+    private async Task<string> GetAccessToken()
+    {
+        var tokenResult = await TokenProvider.RequestAccessToken();
+
+        if (tokenResult.TryGetToken(out var token))
+        {
+            return token.Value;
+        }
+
+        return null;
+    }
+
+}

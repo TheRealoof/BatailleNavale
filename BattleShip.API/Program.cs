@@ -28,6 +28,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddAuth0WebAppAuthentication(options =>
+{
+    options.Domain = builder.Configuration["Auth0:Domain"]!;
+    options.ClientId = builder.Configuration["Auth0:ClientId"]!;
+});
+
 builder.Services
     .AddAuthentication(options =>
     {
@@ -74,7 +80,7 @@ app.MapGet("/test", async (HttpRequest request) =>
     };
 }).WithName("Test").WithOpenApi();
 
-app.MapPost("/login", async (context) =>
+app.MapGet("/login", async (context) =>
 {
     var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
         // Indicate here where Auth0 should redirect the user after a login.
@@ -115,7 +121,8 @@ app.MapGet("/profile", [Authorize] (HttpContext context) =>
         Console.WriteLine(claim.Type + " : " + claim.Value);
     }
     
-    var nameIdentifier = user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+    //var nameIdentifier = user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+    var nameIdentifier = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
     Console.WriteLine("NameIdentifier: " + nameIdentifier);
     
     var httpClient = new HttpClient();
@@ -127,7 +134,7 @@ app.MapGet("/profile", [Authorize] (HttpContext context) =>
     
     var token = authHeader.Substring("Bearer ".Length).Trim();
     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-    var response = httpClient.GetAsync(" https://dev-xh5hwto5vb2xyc1m.us.auth0.com/userinfo").Result;
+    var response = httpClient.GetAsync("https://dev-xh5hwto5vb2xyc1m.us.auth0.com/userinfo").Result;
     
     if (!response.IsSuccessStatusCode)
         return Results.Unauthorized();

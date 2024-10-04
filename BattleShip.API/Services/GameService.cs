@@ -1,4 +1,4 @@
-﻿namespace BattleShip.API;
+﻿namespace BattleShip.API.Services;
 
 public class GameService
 {

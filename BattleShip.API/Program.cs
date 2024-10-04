@@ -56,6 +56,7 @@ builder.Services
 
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddSingleton<BattleshipHttpService>();
 builder.Services.AddSingleton<AccountService>();
 builder.Services.AddSingleton<GameService>();
 
@@ -74,6 +75,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseHttpsRedirection();
+
+app.Services.GetRequiredService<BattleshipHttpService>().RegisterRoutes(app);
 
 /*
 app.MapGet("/login", async (context) =>
@@ -101,30 +104,6 @@ app.MapPost("/logout", [Authorize] async (context) =>
     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 }).WithName("Logout").WithOpenApi();
 */
-
-app.MapGet("/profile", [Authorize] async (HttpContext context) =>
-{
-    ClaimsPrincipal user = context.User;
-    string authHeader = context.Request.Headers["Authorization"].ToString();
-    if (!authHeader.StartsWith("Bearer "))
-    {
-        return Results.Unauthorized();
-    }
-
-    var token = authHeader.Substring("Bearer ".Length).Trim();
-
-    Profile profile;
-    try
-    {
-        profile = await app.Services.GetRequiredService<AccountService>().GetUserProfile(user, token);
-    }
-    catch (Exception)
-    {
-        return Results.Unauthorized();
-    }
-
-    return Results.Ok(profile);
-}).WithName("Profile").WithOpenApi();
 
 /*
 app.MapPost("/exchange-code", async (HttpRequest request) =>

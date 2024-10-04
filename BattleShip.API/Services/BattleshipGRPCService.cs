@@ -1,7 +1,8 @@
 ﻿using Grpc.Core;
 
-namespace BattleShip.API;
+namespace BattleShip.API.Services;
 
+// ReSharper disable once InconsistentNaming
 public class BattleshipGRPCService : BattleshipService.BattleshipServiceBase
 {
 

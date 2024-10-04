@@ -11,20 +11,21 @@
 
 Welcome to your new app.
 
-@if (_profile != null)
-{
-    <p>Username: @_profile.UserName</p>
-}
-else
-{
-    <p>Chargement...</p>
-}
-
-<p>Token: @_token</p>
+<div>
+    @if (_profile != null)
+    {
+        <p>Username: @_profile.UserName</p>
+        <img src="@_profile.Picture" alt=""/>
+    }
+    else
+    {
+        <p>Loading profile...</p>
+    }
+</div>
 
 @code {
-    private Profile? _profile = null;
-    private string? _token = null;
+    private Profile? _profile;
+    private string? _token;
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,17 +50,11 @@ else
             exception.Redirect();
         }
     }
-    
-    private async Task<string> GetAccessToken()
+
+    private async Task<string?> GetAccessToken()
     {
         var tokenResult = await TokenProvider.RequestAccessToken();
-
-        if (tokenResult.TryGetToken(out var token))
-        {
-            return token.Value;
-        }
-
-        return null;
+        return tokenResult.TryGetToken(out var token) ? token.Value : null;
     }
 
 }

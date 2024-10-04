@@ -56,6 +56,8 @@ builder.Services
 
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddGrpc();
+
 builder.Services.AddSingleton<BattleshipHttpService>();
 builder.Services.AddSingleton<AccountService>();
 builder.Services.AddSingleton<GameService>();
@@ -71,12 +73,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowAllOrigins");
 
+app.UseRouting();
+
+app.UseGrpcWeb();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseHttpsRedirection();
 
 app.Services.GetRequiredService<BattleshipHttpService>().RegisterRoutes(app);
+
+app.MapGrpcService<BattleshipGRPCService>();
 
 /*
 app.MapGet("/login", async (context) =>

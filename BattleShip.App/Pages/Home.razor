@@ -1,9 +1,12 @@
 ﻿@page "/"
 @attribute [Authorize]
-@using BattleShip.Models
+@using BattleShip.API.Protos
+@using Grpc.Core
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Profile = BattleShip.Models.Profile
 @inject HttpClient Http
 @inject IAccessTokenProvider TokenProvider
+@inject BattleshipService.BattleshipServiceClient GrpcClient
 
 <PageTitle>Home</PageTitle>
 
@@ -31,10 +34,10 @@ Welcome to your new app.
     {
         await base.OnInitializedAsync();
         _token = await GetAccessToken();
-        await RequestProfile();
+        await RequestProfileGrpc();
     }
 
-    private async Task RequestProfile()
+    private async Task RequestProfileHttp()
     {
         try
         {
@@ -44,6 +47,25 @@ Welcome to your new app.
             if (!response.IsSuccessStatusCode)
                 return;
             _profile = await response.Content.ReadFromJsonAsync<Profile>();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private async Task RequestProfileGrpc()
+    {
+        try
+        {
+            // pass token in service call
+            var headers = new Metadata { { "Authorization", $"Bearer {_token}" } };
+            var grpcProfile = await GrpcClient.GetProfileAsync(new Empty(), headers);
+            _profile = new Profile
+            {
+                UserName = grpcProfile.Username,
+                Picture = grpcProfile.Picture
+            };
         }
         catch (AccessTokenNotAvailableException exception)
         {

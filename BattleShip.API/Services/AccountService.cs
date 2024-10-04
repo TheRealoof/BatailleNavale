@@ -1,6 +1,5 @@
 ﻿using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Text.Json;
 using BattleShip.Models;
 
 namespace BattleShip.API.Services;
@@ -31,5 +30,16 @@ public class AccountService
         };
 
         return profile;
+    }
+    
+    public string? ExtractToken(HttpContext context)
+    {
+        string authHeader = context.Request.Headers["Authorization"].ToString();
+        if (!authHeader.StartsWith("Bearer "))
+        {
+            return null;
+        }
+
+        return authHeader.Substring("Bearer ".Length).Trim();
     }
 }

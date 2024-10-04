@@ -2,16 +2,15 @@
 
 import "google/protobuf/wrappers.proto";
 
-message AttackRequestGRPC {
-  string name = 1;
-  int32 id = 2;
-}
+option csharp_namespace = "BattleShip.API.Protos";
 
-message AttackResponseGRPC {
-  string message = 1;
-  bool success = 2;
+message Empty {}
+
+message Profile {
+  google.protobuf.StringValue username = 1;
+  google.protobuf.StringValue picture = 2;
 }
 
 service BattleshipService {
-  rpc Attack(AttackRequestGRPC) returns (AttackResponseGRPC);
+  rpc GetProfile(Empty) returns (Profile);
 }

@@ -4,16 +4,12 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace BattleShip.API.Services;
 
-public class BattleshipHttpService
+public class BattleshipHttpService(AccountService accountService)
 {
-    
-    private WebApplication _app = null!;
     
     public void RegisterRoutes(WebApplication app)
     {
-        _app = app;
-        
-        _app.MapGet("/profile", [Authorize] async (HttpContext context) =>
+        app.MapGet("/profile", [Authorize] async (HttpContext context) =>
         {
             return await Profile(context);
         }).WithName("Profile").WithOpenApi();
@@ -22,13 +18,13 @@ public class BattleshipHttpService
     private async Task<IResult> Profile(HttpContext context)
     {
         ClaimsPrincipal user = context.User;
-        string? token = ExtractToken(context);
+        string? token = accountService.ExtractToken(context);
         if (token is null) return Results.Unauthorized();
 
         Profile profile;
         try
         {
-            profile = await _app.Services.GetRequiredService<AccountService>().GetUserProfile(user, token);
+            profile = await accountService.GetUserProfile(user, token);
         }
         catch (Exception)
         {
@@ -36,17 +32,6 @@ public class BattleshipHttpService
         }
 
         return Results.Ok(profile);
-    }
-    
-    private string? ExtractToken(HttpContext context)
-    {
-        string authHeader = context.Request.Headers["Authorization"].ToString();
-        if (!authHeader.StartsWith("Bearer "))
-        {
-            return null;
-        }
-
-        return authHeader.Substring("Bearer ".Length).Trim();
     }
     
 }

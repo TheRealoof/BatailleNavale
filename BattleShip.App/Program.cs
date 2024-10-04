@@ -1,3 +1,4 @@
+using BattleShip.API.Protos;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using BattleShip.App;

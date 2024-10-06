@@ -1,0 +1,37 @@
+﻿@inject GameHub GameHub
+@using BattleShip.App.Services
+@using Microsoft.AspNetCore.SignalR.Client
+@inherits ComponentBase
+
+@switch(GameHub.HubConnection.State)
+{
+    case HubConnectionState.Connected:
+        @ConnectedContent
+        break;
+    case HubConnectionState.Connecting:
+        @DisconnectedContent
+        break;
+    case HubConnectionState.Disconnected:
+        @DisconnectedContent
+        break;
+}
+
+@code {
+    
+    [Parameter] public RenderFragment? ConnectedContent { get; set; }
+    [Parameter] public RenderFragment? DisconnectedContent { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        GameHub.OnStateChanged += OnStateChanged;
+        await GameHub.StartConnectionAsync();
+    }
+    
+    private void OnStateChanged()
+    {
+        StateHasChanged();
+    }
+
+}
+

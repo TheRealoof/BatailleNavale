@@ -34,7 +34,7 @@ Welcome to your new app.
     {
         await base.OnInitializedAsync();
         _token = await GetAccessToken();
-        await RequestProfileGrpc();
+        await RequestProfileHttp();
     }
 
     private async Task RequestProfileHttp()

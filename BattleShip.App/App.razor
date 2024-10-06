@@ -1,4 +1,4 @@
-﻿@using BattleShip.App.Composants
+﻿@using BattleShip.App.Components
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
@@ -11,6 +11,14 @@
                     <RedirectToLogin/>
                 </NotAuthorized>
             </AuthorizeRouteView>
+            <GameHubConnexionHandler>
+                <ConnectedContent>
+                    <h1>Connected</h1>
+                </ConnectedContent>
+                <DisconnectedContent>
+                    <h1>Disconnected</h1>
+                </DisconnectedContent>
+            </GameHubConnexionHandler>
         </Found>
         <NotFound>
             <PageTitle>Not found</PageTitle>

@@ -58,6 +58,8 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddGrpc();
 
+builder.Services.AddSignalR();
+
 builder.Services.AddSingleton<BattleshipHttpService>();
 builder.Services.AddSingleton<AccountService>();
 builder.Services.AddSingleton<GameService>();
@@ -85,6 +87,8 @@ app.UseHttpsRedirection();
 app.Services.GetRequiredService<BattleshipHttpService>().RegisterRoutes(app);
 
 app.MapGrpcService<BattleshipGRPCService>();
+
+app.MapHub<GameHub>("/gamehub");
 
 /*
 app.MapGet("/login", async (context) =>

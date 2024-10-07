@@ -26,6 +26,7 @@ builder.Services.AddCors(options =>
         policy.AllowAnyOrigin();
         policy.AllowAnyMethod();
         policy.AllowAnyHeader();
+        policy.WithExposedHeaders("grpc-status", "grpc-message");
     });
 });
 
@@ -86,7 +87,7 @@ app.UseHttpsRedirection();
 
 app.Services.GetRequiredService<BattleshipHttpService>().RegisterRoutes(app);
 
-app.MapGrpcService<BattleshipGRPCService>();
+app.MapGrpcService<BattleshipGRPCService>().EnableGrpcWeb();
 
 app.MapHub<GameHub>("/gamehub");
 

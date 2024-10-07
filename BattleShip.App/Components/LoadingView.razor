@@ -1,38 +1,45 @@
 ﻿@inject NavigationManager Navigation
 
-<h3>Loading</h3>
+<div id="loading-screen-page">
+    <div id="loading-screen-div">
 
-@switch (State)
-{
-    case LoadingState.NeedsLogin:
-    {
-        <button @onclick="OnLoginClicked">Login</button>
-        break;
-    }
-    case LoadingState.LoggingIn:
-    {
-        <p>Logging in...</p>
-        break;
-    }
-    case LoadingState.Connecting:
-    {
-        <p>Connecting to game server...</p>
-        break;
-    }
-    case LoadingState.Failed:
-    {
-        <p>Failed to connect to game server</p>
-        break;
-    }
-    default:
-        throw new ArgumentOutOfRangeException();
-}
+        @switch (State)
+        {
+            case LoadingState.NeedsLogin:
+            {
+                <p class="loading-screen-text">YOU NEED TO LOGIN TO PLAY</p>
+                <button class="loading-screen-button" @onclick="OnLoginClicked">LOGIN</button>
+                break;
+            }
+            case LoadingState.LoggingIn:
+            {
+                <img id="loading-screen-icon" src="images/ui/loading-icon.gif" alt=""/>
+                <p class="loading-screen-text">LOGGING IN...</p>
+                break;
+            }
+            case LoadingState.Connecting:
+            {
+                <img id="loading-screen-icon" src="images/ui/loading-icon.gif" alt=""/>
+                <p class="loading-screen-text">CONNECTING TO GAME SERVER...</p>
+                break;
+            }
+            case LoadingState.Failed:
+            {
+                <p class="loading-screen-error">FAILED TO CONNECT TO GAME SERVER</p>
+                break;
+            }
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+    </div>
+</div>
 
 @code {
-    
+
     // Parameter to set the loading state
     [Parameter] public LoadingState State { get; set; }
-    
+
     public enum LoadingState
     {
         NeedsLogin,
@@ -40,10 +47,10 @@
         Connecting,
         Failed
     }
-    
+
     private void OnLoginClicked()
     {
         Navigation.NavigateTo("authentication/login");
     }
-    
+
 }

@@ -1,0 +1,11 @@
+﻿<div id="background-div">
+    <img id="background-img" src="images/ui/background.jpg" alt="" style="filter: blur(@(Blur)px) hue-rotate(@(Hue)deg)"/>
+</div>
+
+@code {
+    
+    [Parameter] public int Hue { get; set; } = 0;
+    
+    [Parameter] public float Blur { get; set; } = 0;
+    
+}

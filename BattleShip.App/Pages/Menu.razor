@@ -11,6 +11,8 @@
 @inject IAccessTokenProvider TokenProvider
 @inject BattleshipService.BattleshipServiceClient GrpcClient
 
+<BackgroundImage/>
+
 <div>
     <p>@(_profile?.UserName ?? "...")</p>
     <img src="@(_profile?.Picture ?? "")" alt="Profile picture"/>

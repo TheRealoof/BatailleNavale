@@ -79,3 +79,8 @@ code {
 * {
     font-family: Arial, sans-serif;
 }
+
+body {
+    overflow: hidden;
+    margin: 0;
+}

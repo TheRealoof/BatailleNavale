@@ -1,6 +1,9 @@
 ﻿@inject NavigationManager Navigation
 
+<BackgroundImage Blur="5" Hue="20"/>
+
 <div id="loading-screen-page">
+
     <div id="loading-screen-div">
 
         @switch (State)
@@ -37,7 +40,6 @@
 
 @code {
 
-    // Parameter to set the loading state
     [Parameter] public LoadingState State { get; set; }
 
     public enum LoadingState

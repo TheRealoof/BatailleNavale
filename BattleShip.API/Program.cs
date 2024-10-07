@@ -145,11 +145,6 @@ app.MapPost("/exchange-code", async (HttpRequest request) =>
 });
 */
 
-// register player by name returns player object
-app.MapPost("/api/player", (GameService gameService, string name) => { gameService.PlayerManager.AddPlayer(name); })
-    .WithName("CreatePlayer")
-    .WithOpenApi();
-
 // create new game returns the players boats and game id
 app.MapPost("/api/game", (GameService gameService) => { gameService.GameManager.CreateGame(); })
     .WithName("CreateGame")

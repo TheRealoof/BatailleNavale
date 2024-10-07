@@ -5,20 +5,12 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <Authorizing>
-                    <p>Determining session state, please wait...</p>
+                    <LoadingView State="LoadingView.LoadingState.LoggingIn"/>
                 </Authorizing>
                 <NotAuthorized>
                     <RedirectToLogin/>
                 </NotAuthorized>
             </AuthorizeRouteView>
-            <GameHubConnexionHandler>
-                <ConnectedContent>
-                    <h1>Connected</h1>
-                </ConnectedContent>
-                <DisconnectedContent>
-                    <h1>Disconnected</h1>
-                </DisconnectedContent>
-            </GameHubConnexionHandler>
         </Found>
         <NotFound>
             <PageTitle>Not found</PageTitle>

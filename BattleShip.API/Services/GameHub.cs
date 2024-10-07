@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using BattleShip.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BattleShip.API.Services;
 
 [Authorize]
-public class GameHub : Hub
+public class GameHub(GameService gameService) : Hub
 {
     public async Task SendMessage(string user, string message)
     {
@@ -13,7 +15,28 @@ public class GameHub : Hub
 
     public override async Task OnConnectedAsync()
     {
-        Console.WriteLine("Client connected: " + Context.ConnectionId);
+        ClaimsPrincipal? claims = Context.User;
+
+        Claim? nameIdentifier = claims?.FindFirst(ClaimTypes.NameIdentifier);
+        if (nameIdentifier is null)
+        {
+            return;
+        }
+
+        string connectionId = Context.ConnectionId;
+        string playerId = nameIdentifier.Value;
+
+        Player player = gameService.PlayerDatabase.GetOrCreatePlayer(playerId);
+        gameService.SessionManager.PlayerConnected(connectionId, player);
+
         await base.OnConnectedAsync();
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        string connectionId = Context.ConnectionId;
+        gameService.SessionManager.PlayerDisconnected(connectionId);
+
+        await base.OnDisconnectedAsync(exception);
     }
 }

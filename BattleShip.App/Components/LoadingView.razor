@@ -1,0 +1,49 @@
+﻿@inject NavigationManager Navigation
+
+<h3>Loading</h3>
+
+@switch (State)
+{
+    case LoadingState.NeedsLogin:
+    {
+        <button @onclick="OnLoginClicked">Login</button>
+        break;
+    }
+    case LoadingState.LoggingIn:
+    {
+        <p>Logging in...</p>
+        break;
+    }
+    case LoadingState.Connecting:
+    {
+        <p>Connecting to game server...</p>
+        break;
+    }
+    case LoadingState.Failed:
+    {
+        <p>Failed to connect to game server</p>
+        break;
+    }
+    default:
+        throw new ArgumentOutOfRangeException();
+}
+
+@code {
+    
+    // Parameter to set the loading state
+    [Parameter] public LoadingState State { get; set; }
+    
+    public enum LoadingState
+    {
+        NeedsLogin,
+        LoggingIn,
+        Connecting,
+        Failed
+    }
+    
+    private void OnLoginClicked()
+    {
+        Navigation.NavigateTo("authentication/login");
+    }
+    
+}

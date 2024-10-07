@@ -1,22 +1,32 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
+﻿using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace BattleShip.App.Services;
 
-public class GameHub
+public class GameHub(IAccessTokenProvider tokenProvider)
 {
-    public HubConnection HubConnection { get; private set; }
+    public HubConnection? HubConnection { get; private set; }
 
     public event Action? OnStateChanged;
 
-    public GameHub()
+    private async Task BuildHubConnection()
     {
+        AccessTokenResult token = await tokenProvider.RequestAccessToken();
+        token.TryGetToken(out AccessToken? accessToken);
+        if (accessToken is null)
+        {
+            return;
+        }
         HubConnection = new HubConnectionBuilder()
-            .WithUrl(new Uri("https://localhost:5001/gamehub"))
-            .WithAutomaticReconnect()
+            .WithUrl(new Uri("https://localhost:5001/gamehub"), options =>
+            {
+                options.AccessTokenProvider = () => Task.FromResult(accessToken.Value)!;
+            })
             .Build();
 
         HubConnection.Closed += (_) =>
         {
+            HubConnection = null;
             OnStateChanged?.Invoke();
             return Task.CompletedTask;
         };
@@ -34,18 +44,34 @@ public class GameHub
     
     public async Task StartConnectionAsync()
     {
+        if (HubConnection is null)
+        {
+            await BuildHubConnection();
+        }
+        if (HubConnection is null)
+        {
+            return;
+        }
         if (HubConnection.State == HubConnectionState.Disconnected)
         {
-            await HubConnection.StartAsync();
-            OnStateChanged?.Invoke();
+            try
+            {
+                await HubConnection.StartAsync();
+                OnStateChanged?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 
     public async Task StopConnectionAsync()
     {
-        if (HubConnection.State == HubConnectionState.Connected)
+        if (HubConnection is not null && HubConnection.State == HubConnectionState.Connected)
         {
             await HubConnection.StopAsync();
+            HubConnection = null;
             OnStateChanged?.Invoke();
         }
     }

@@ -1,82 +1,50 @@
 ﻿@page "/"
-@attribute [Authorize]
-@using BattleShip.API.Protos
-@using Grpc.Core
+@using BattleShip.App.Components
+@using BattleShip.App.Services
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using Profile = BattleShip.Models.Profile
-@inject HttpClient Http
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager Navigation
 @inject IAccessTokenProvider TokenProvider
-@inject BattleshipService.BattleshipServiceClient GrpcClient
+@inject GameHub GameHub
 
-<PageTitle>Home</PageTitle>
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<div>
-    @if (_profile != null)
-    {
-        <p>Username: @_profile.UserName</p>
-        <img src="@_profile.Picture" alt=""/>
-    }
-    else
-    {
-        <p>Loading profile...</p>
-    }
-</div>
+<LoadingView State="_state"/>
 
 @code {
-    private Profile? _profile;
-    private string? _token;
+
+    private LoadingView.LoadingState _state = LoadingView.LoadingState.LoggingIn;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _token = await GetAccessToken();
-        await RequestProfileGrpc();
+        await TryLoad();
     }
 
-    private async Task RequestProfileHttp()
+    private async Task TryLoad()
     {
-        try
+        bool isLoggedIn = await IsLoggedIn();
+        if (isLoggedIn)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "profile");
-            request.Headers.Add("Authorization", $"Bearer {_token}");
-            var response = await Http.SendAsync(request);
-            if (!response.IsSuccessStatusCode)
-                return;
-            _profile = await response.Content.ReadFromJsonAsync<Profile>();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-        }
-    }
-
-    private async Task RequestProfileGrpc()
-    {
-        try
-        {
-            // pass token in service call
-            var headers = new Metadata { { "Authorization", $"Bearer {_token}" } };
-            var grpcProfile = await GrpcClient.GetProfileAsync(new Empty(), headers);
-            _profile = new Profile
+            _state = LoadingView.LoadingState.Connecting;
+            await GameHub.StartConnectionAsync();
+            if (GameHub.HubConnection is not null && GameHub.HubConnection.State == HubConnectionState.Connected)
             {
-                UserName = grpcProfile.Username,
-                Picture = grpcProfile.Picture
-            };
+                Navigation.NavigateTo("/menu");
+            }
+            else
+            {
+                _state = LoadingView.LoadingState.Failed;
+            }
         }
-        catch (AccessTokenNotAvailableException exception)
+        else
         {
-            exception.Redirect();
+            _state = LoadingView.LoadingState.NeedsLogin;
         }
     }
 
-    private async Task<string?> GetAccessToken()
+    private async Task<bool> IsLoggedIn()
     {
-        var tokenResult = await TokenProvider.RequestAccessToken();
-        return tokenResult.TryGetToken(out var token) ? token.Value : null;
+        AccessTokenResult token = await TokenProvider.RequestAccessToken();
+        return token.TryGetToken(out var _);
     }
 
 }

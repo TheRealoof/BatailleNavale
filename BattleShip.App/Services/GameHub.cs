@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+﻿using BattleShip.Models;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace BattleShip.App.Services;
@@ -6,8 +7,10 @@ namespace BattleShip.App.Services;
 public class GameHub(IAccessTokenProvider tokenProvider)
 {
     public HubConnection? HubConnection { get; private set; }
-
+    
     public event Action? OnStateChanged;
+    public event Action<QueueType>? OnQueueJoined;
+    public event Action? OnQueueLeft;
 
     private async Task BuildHubConnection()
     {
@@ -58,6 +61,7 @@ public class GameHub(IAccessTokenProvider tokenProvider)
             {
                 await HubConnection.StartAsync();
                 OnStateChanged?.Invoke();
+                ListenToMessages();
             }
             catch (Exception e)
             {
@@ -75,4 +79,25 @@ public class GameHub(IAccessTokenProvider tokenProvider)
             OnStateChanged?.Invoke();
         }
     }
+    
+    private void ListenToMessages()
+    {
+        if (HubConnection is null)
+        {
+            return;
+        }
+        
+        Console.WriteLine("Listening to messages");
+        
+        HubConnection.On<QueueType>("NotifyJoinQueue", type =>
+        {
+            OnQueueJoined?.Invoke(type);
+        });
+        
+        HubConnection.On("NotifyLeaveQueue", () =>
+        {
+            OnQueueLeft?.Invoke();
+        });
+    }
+    
 }

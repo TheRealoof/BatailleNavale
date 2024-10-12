@@ -1,7 +1,9 @@
 ﻿using System.Security.Claims;
 using BattleShip.API.Protos;
+using BattleShip.Models;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
+using Profile = BattleShip.API.Protos.Profile;
 
 namespace BattleShip.API.Services;
 
@@ -12,8 +14,8 @@ public class BattleshipGRPCService(AccountService accountService, GameService ga
     [Authorize]
     public override async Task<Profile> GetProfile(Empty request, ServerCallContext context)
     {
-        ClaimsPrincipal claims = context.GetHttpContext().User;
-        string? token = accountService.ExtractToken(context.GetHttpContext());
+        ClaimsPrincipal claims = GetClaims(context);
+        string? token = GetToken(context);
 
         if (token is null)
         {
@@ -35,5 +37,41 @@ public class BattleshipGRPCService(AccountService accountService, GameService ga
             Username = profile.UserName,
             Picture = profile.Picture
         };
+    }
+
+    [Authorize]
+    public override Task<Empty> JoinQueue(QueueSettings request, ServerCallContext context)
+    {
+        if (!Enum.TryParse(request.Type, out QueueType queueType))
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid queue type"));
+        }
+        
+        Player player = gameService.PlayerDatabase.GetOrCreatePlayer(GetUserId(context));
+        gameService.QueueManager.JoinQueue(player, queueType);
+        return Task.FromResult(new Empty());
+    }
+
+    [Authorize]
+    public override Task<Empty> LeaveQueue(Empty request, ServerCallContext context)
+    {
+        Player player = gameService.PlayerDatabase.GetOrCreatePlayer(GetUserId(context));
+        gameService.QueueManager.LeaveQueue(player);
+        return Task.FromResult(new Empty());
+    }
+
+    private ClaimsPrincipal GetClaims(ServerCallContext context)
+    {
+        return context.GetHttpContext().User;
+    }
+    
+    private string GetUserId(ServerCallContext context)
+    {
+        return GetClaims(context).FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+    }
+    
+    private string? GetToken(ServerCallContext context)
+    {
+        return accountService.ExtractToken(context.GetHttpContext());
     }
 }

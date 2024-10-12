@@ -3,8 +3,9 @@
 @attribute [Authorize]
 @using BattleShip.App.Components
 @using BattleShip.App.Services
-@inject NavigationManager Navigation
+@using BattleShip.Models
 @inject LayoutService LayoutService
+@inject GameServer GameServer
 
 
 <div id="page">
@@ -40,13 +41,13 @@
 
     private void PlayAgainstPlayer()
     {
-        
+        GameServer.JoinQueue(QueueType.QuickPlay);
     }
     
     // ReSharper disable once InconsistentNaming
     private void PlayAgainstAI()
     {
-        
+        GameServer.JoinQueue(QueueType.AgainstAI);
     }
     
 }

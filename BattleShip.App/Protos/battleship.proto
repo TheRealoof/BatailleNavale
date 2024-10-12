@@ -11,6 +11,12 @@ message Profile {
   google.protobuf.StringValue picture = 2;
 }
 
+message QueueSettings {
+  google.protobuf.StringValue type = 1;
+}
+
 service BattleshipService {
   rpc GetProfile(Empty) returns (Profile);
+  rpc JoinQueue(QueueSettings) returns (Empty);
+  rpc LeaveQueue(Empty) returns (Empty);
 }

@@ -1,18 +1,28 @@
 ﻿@using BattleShip.App.Components
 @using BattleShip.App.Services
+@using BattleShip.Models
+@using Microsoft.AspNetCore.SignalR.Client
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
 @inject LayoutService LayoutService
+@inject GameHub GameHub
 
 <div>
 
     <BackgroundImage Blur="@BackgroundBlur" Hue="@BackgroundHue"/>
 
     @Body
+    
+    @if (_queue != null)
+    {
+        <QueueViewer queueType="@_queue"/>
+    }
 
 </div>
 
 @code {
+
+    private QueueType? _queue = null;
 
     public int BackgroundBlur
     {
@@ -21,7 +31,6 @@
         {
             if (_backgroundBlur == value) return;
             _backgroundBlur = value;
-            Console.WriteLine($"Background blur set to {_backgroundBlur}");
             StateHasChanged();
         }
     }
@@ -35,7 +44,6 @@
         {
             if (_backgroundHue == value) return;
             _backgroundHue = value;
-            Console.WriteLine($"Background hue set to {_backgroundHue}");
             StateHasChanged();
         }
     }
@@ -46,6 +54,28 @@
     {
         base.OnInitialized();
         LayoutService.MainLayout = this;
+        GameHub.OnStateChanged += OnStateChanged;
+        GameHub.OnQueueJoined += OnQueueJoined;
+        GameHub.OnQueueLeft += OnQueueLeft;
+    }
+    
+    private void OnStateChanged()
+    {
+        if (GameHub.HubConnection != null && GameHub.HubConnection.State != HubConnectionState.Disconnected) return;
+        _queue = null;
+        StateHasChanged();
+    }
+    
+    private void OnQueueJoined(QueueType queueType)
+    {
+        _queue = queueType;
+        StateHasChanged();
+    }
+    
+    private void OnQueueLeft()
+    {
+        _queue = null;
+        StateHasChanged();
     }
 
 }

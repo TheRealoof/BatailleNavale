@@ -6,8 +6,16 @@ namespace BattleShip.API.Services;
 
 public class AccountService
 {
+    
+    private readonly Dictionary<string, Profile> _profiles = new();
+    
     public async Task<Profile> GetUserProfile(ClaimsPrincipal claims, string token)
     {
+        if (_profiles.TryGetValue(token, out var foundProfile))
+        {
+            return foundProfile;
+        }
+        
         var nameIdentifier = claims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         Console.WriteLine("NameIdentifier: " + nameIdentifier);
 
@@ -28,6 +36,7 @@ public class AccountService
             UserName = content["nickname"].ToString(),
             Picture = content["picture"].ToString()
         };
+        _profiles.Add(token, profile);
 
         return profile;
     }

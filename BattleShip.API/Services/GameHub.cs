@@ -39,4 +39,5 @@ public class GameHub(GameService gameService) : Hub
 
         await base.OnDisconnectedAsync(exception);
     }
+    
 }

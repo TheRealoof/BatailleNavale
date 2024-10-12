@@ -1,10 +1,6 @@
-﻿@using BattleShip.API.Protos
-@using Grpc.Core
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using Profile = BattleShip.Models.Profile
-@inject HttpClient Http
-@inject IAccessTokenProvider TokenProvider
-@inject BattleshipService.BattleshipServiceClient GrpcClient
+﻿@using BattleShip.App.Services
+@using BattleShip.Models
+@inject GameServer GameServer
 
 <div id="profile-view">
     <p id="username">@(_profile?.UserName ?? "...")</p>
@@ -17,50 +13,6 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await RequestProfileGrpc();
-    }
-    
-    private async Task RequestProfileHttp()
-    {
-        try
-        {
-            var token = await GetAccessToken();
-            var request = new HttpRequestMessage(HttpMethod.Get, "profile");
-            request.Headers.Add("Authorization", $"Bearer {token}");
-            var response = await Http.SendAsync(request);
-            if (!response.IsSuccessStatusCode)
-                return;
-            _profile = await response.Content.ReadFromJsonAsync<Profile>();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-        }
-    }
-
-    private async Task RequestProfileGrpc()
-    {
-        try
-        {
-            var token = await GetAccessToken();
-            var headers = new Metadata { { "Authorization", $"Bearer {token}" } };
-            var grpcProfile = await GrpcClient.GetProfileAsync(new Empty(), headers);
-            _profile = new Profile
-            {
-                UserName = grpcProfile.Username,
-                Picture = grpcProfile.Picture
-            };
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-        }
-    }
-
-    private async Task<string> GetAccessToken()
-    {
-        var tokenResult = await TokenProvider.RequestAccessToken();
-        tokenResult.TryGetToken(out var token);
-        return token!.Value;
+        _profile = await GameServer.GetProfile();
     }
 }

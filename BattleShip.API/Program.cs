@@ -77,6 +77,7 @@ builder.Services.AddGrpc();
 
 builder.Services.AddSignalR();
 
+builder.Services.AddSingleton<GameHubService>();
 builder.Services.AddSingleton<BattleshipHttpService>();
 builder.Services.AddSingleton<AccountService>();
 builder.Services.AddSingleton<GameService>();

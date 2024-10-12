@@ -6,6 +6,8 @@ public class SessionManager
 {
     private readonly Dictionary<string, Player> _sessions = new();
     private readonly Dictionary<string, string> _connectionIds = new();
+    
+    public event Action<Player>? OnPlayerDisconnected;
 
     public void PlayerConnected(string connectionId, Player player)
     {
@@ -17,6 +19,7 @@ public class SessionManager
     public void PlayerDisconnected(string connectionId)
     {
         Console.WriteLine($"Player disconnected: {_sessions[connectionId].Id}");
+        OnPlayerDisconnected?.Invoke(_sessions[connectionId]);
         _connectionIds.Remove(_sessions[connectionId].Id);
         _sessions.Remove(connectionId);
     }

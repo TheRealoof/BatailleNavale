@@ -1,0 +1,53 @@
+﻿@using BattleShip.App.Services
+@using BattleShip.Models
+@inject GameServer GameServer
+
+<div id="queue-viewer">
+    
+    <div id="display">
+        
+        <div id="texts">
+            <p id="title">In Queue</p>
+            <p id="description">@_description</p>
+        </div>
+
+        <img id="loading-icon" src="images/ui/loading-icon.gif" alt=""/>
+
+    </div>
+    
+    <div id="cancel-button">
+        <button @onclick="CancelQueue">Cancel</button>
+    </div>
+
+</div>
+
+@code {
+
+    [Parameter] public QueueType? queueType { get; set; }
+    
+    private string _description = null!;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        switch (queueType)
+        {
+            case QueueType.QuickPlay:
+            {
+                _description = "Quick Play";
+                break;
+            }
+            case QueueType.AgainstAI:
+            {
+                _description = "Against AI";
+                break;
+            }
+        }
+    }
+    
+    private void CancelQueue()
+    {
+        GameServer.LeaveQueue();
+    }
+
+}

@@ -1,6 +1,6 @@
-﻿@inject NavigationManager Navigation
-
-<BackgroundImage Blur="5" Hue="20"/>
+﻿@using BattleShip.App.Services
+@inject NavigationManager Navigation
+@inject LayoutService LayoutService
 
 <div id="loading-screen-page">
 
@@ -48,6 +48,16 @@
         LoggingIn,
         Connecting,
         Failed
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (LayoutService.MainLayout != null)
+        {
+            LayoutService.MainLayout.BackgroundBlur = 10;
+            LayoutService.MainLayout.BackgroundHue = 20;
+        }
     }
 
     private void OnLoginClicked()

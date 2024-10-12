@@ -1,0 +1,28 @@
+﻿
+#profile-view
+{
+    display: flex;
+    flex-direction: row;
+    width: 300px;
+    background-color: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+}
+
+#profile-view #username
+{
+    font-family: Impact, Charcoal, sans-serif;
+    font-size: 1.3em;
+    height: 100%;
+    flex-grow: 1;
+    margin: auto 0;
+    padding: 0 20px;
+}
+
+#profile-view #profile-picture
+{
+    width: 70px;
+    height: 70px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+}

@@ -1,3 +1,51 @@
-﻿@inherits LayoutComponentBase
+﻿@using BattleShip.App.Components
+@using BattleShip.App.Services
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject LayoutService LayoutService
 
-@Body
+<div>
+
+    <BackgroundImage Blur="@BackgroundBlur" Hue="@BackgroundHue"/>
+
+    @Body
+
+</div>
+
+@code {
+
+    public int BackgroundBlur
+    {
+        get => _backgroundBlur;
+        set
+        {
+            if (_backgroundBlur == value) return;
+            _backgroundBlur = value;
+            Console.WriteLine($"Background blur set to {_backgroundBlur}");
+            StateHasChanged();
+        }
+    }
+
+    private int _backgroundBlur = 0;
+
+    public int BackgroundHue
+    {
+        get => _backgroundHue;
+        set
+        {
+            if (_backgroundHue == value) return;
+            _backgroundHue = value;
+            Console.WriteLine($"Background hue set to {_backgroundHue}");
+            StateHasChanged();
+        }
+    }
+
+    private int _backgroundHue = 0;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        LayoutService.MainLayout = this;
+    }
+
+}

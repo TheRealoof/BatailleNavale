@@ -38,4 +38,6 @@ builder.Services.AddScoped(sp =>
 
 builder.Services.AddScoped<GameHub>();
 
+builder.Services.AddSingleton<LayoutService>();
+
 await builder.Build().RunAsync();

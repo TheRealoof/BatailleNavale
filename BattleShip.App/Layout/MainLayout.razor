@@ -57,6 +57,8 @@
         GameHub.OnStateChanged += OnStateChanged;
         GameHub.OnQueueJoined += OnQueueJoined;
         GameHub.OnQueueLeft += OnQueueLeft;
+        GameHub.OnGameJoined += OnGameJoined;
+        GameHub.OnGameLeft += OnGameLeft;
     }
     
     private void OnStateChanged()
@@ -76,6 +78,16 @@
     {
         _queue = null;
         StateHasChanged();
+    }
+    
+    private void OnGameJoined(Game game)
+    {
+        Navigation.NavigateTo("/game");
+    }
+    
+    private void OnGameLeft(Game game)
+    {
+        Navigation.NavigateTo("/menu");
     }
 
 }

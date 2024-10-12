@@ -71,15 +71,35 @@ public class QueueManager : IDisposable
     {
         while (_isRunning)
         {
-            HandleQueue();
+            HandleQueues();
             Thread.Sleep(1000);
         }
     }
 
-    private void HandleQueue()
+    private void HandleQueues()
     {
         Console.WriteLine($"QuickPlayQueue: {_quickPlayQueue.Count}");
         Console.WriteLine($"AgainstAIQueue: {_againstAIQueue.Count}");
+        HandleAIQueue();
+    }
+
+    // ReSharper disable once InconsistentNaming
+    private void HandleAIQueue()
+    {
+        while (_againstAIQueue.Count > 0)
+        {
+            Player player = _againstAIQueue.First();
+            LeaveQueue(player);
+            PlayerController playerController = new PlayerController();
+            AIController aiController = new AIController();
+            Game game = new Game
+            {
+                Player1Controller = playerController,
+                Player2Controller = aiController
+            };
+            _gameService.GameManager.CreateGame(game);
+            _ = _gameService.GameHub.NotifyGameJoined(player.Id, game);
+        }
     }
 
     private void OnPlayerDisconnected(Player player)

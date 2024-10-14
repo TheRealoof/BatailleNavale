@@ -40,4 +40,20 @@ public class GameHub(GameService gameService) : Hub
         await base.OnDisconnectedAsync(exception);
     }
     
+    public Task PlayerReady(string gameId)
+    {
+        string connectionId = Context.ConnectionId;
+        Player player = gameService.SessionManager.GetPlayer(connectionId);
+
+        GameLogic.Game? game = gameService.GameManager.GetGame(gameId);
+        if (game is null)
+        {
+            return Task.CompletedTask;
+        }
+        
+        gameService.PlayerControlManager.PlayerReady(player.Id);
+        
+        return Task.CompletedTask;
+    }
+    
 }

@@ -17,6 +17,8 @@ public class GameService : IDisposable
     public readonly GameManager GameManager;
 
     public readonly QueueManager QueueManager;
+    
+    public readonly PlayerControlManager PlayerControlManager;
 
     public GameService(IServiceProvider serviceProvider)
     {
@@ -25,10 +27,12 @@ public class GameService : IDisposable
         SessionManager = new SessionManager();
         GameManager = new GameManager();
         QueueManager = new QueueManager(this);
+        PlayerControlManager = new PlayerControlManager();
     }
 
     public void Dispose()
     {
         QueueManager.Dispose();
+        GameManager.Dispose();
     }
 }

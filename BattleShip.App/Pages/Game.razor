@@ -30,7 +30,7 @@
 
 @code {
 
-    private Models.Game _game;
+    private Models.Game _game = null!;
 
     protected override void OnInitialized()
     {
@@ -43,6 +43,7 @@
 
         _game = LocalGameReplication.Game;
         Console.WriteLine($"Game started: {_game.Id} with grid size {_game.Settings.GridWidth}x{_game.Settings.GridHeight}");
+        LocalGameReplication.SendReady();
     }
 
     private void OnCellClickSelf((int row, int col) parameters)

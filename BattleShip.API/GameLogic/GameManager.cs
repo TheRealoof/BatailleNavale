@@ -2,9 +2,17 @@
 
 namespace BattleShip.API.GameLogic;
 
-public class GameManager
+public class GameManager : IDisposable
 {
     private readonly Dictionary<Guid, Game> _lobbies = new();
+
+    public void Dispose()
+    {
+        foreach (Game game in _lobbies.Values)
+        {
+            game.Dispose();
+        }
+    }
 
     public void CreateGame(Game game)
     {
@@ -12,9 +20,10 @@ public class GameManager
         Console.WriteLine($"Game created: {game.Id}");
     }
 
-    public Game GetGame(string id)
+    public Game? GetGame(string id)
     {
-        return _lobbies[Guid.Parse(id)];
+        _lobbies.TryGetValue(Guid.Parse(id), out Game? game);
+        return game;
     }
 
     public void RemoveGame(string id)
@@ -24,6 +33,6 @@ public class GameManager
 
     public void PerformAttack(string gameId, string playerId, uint x, uint y)
     {
-        Game game = GetGame(gameId);
+        Game? game = GetGame(gameId);
     }
 }

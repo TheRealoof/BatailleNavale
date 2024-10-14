@@ -12,6 +12,7 @@ public class LocalGameReplication
 
     public LocalGameReplication(GameHub gameHub, NavigationManager navigation)
     {
+        _gameHub = gameHub;
         _navigation = navigation;
         gameHub.OnGameJoined += OnGameJoined;
         gameHub.OnGameLeft += OnGameLeft;
@@ -27,6 +28,15 @@ public class LocalGameReplication
     {
         Game = null;
         _navigation.NavigateTo("/menu");
+    }
+    
+    public void SendReady()
+    {
+        if (Game is null)
+        {
+            return;
+        }
+        _gameHub.SendReady(Game.Id);
     }
     
 }

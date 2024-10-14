@@ -8,6 +8,7 @@ public class QueueManager : IDisposable
     private readonly GameService _gameService;
 
     private readonly HashSet<Player> _quickPlayQueue = new();
+    // ReSharper disable once InconsistentNaming
     private readonly HashSet<Player> _againstAIQueue = new();
 
     private bool _isRunning;
@@ -90,7 +91,8 @@ public class QueueManager : IDisposable
         {
             Player player = _againstAIQueue.First();
             LeaveQueue(player);
-            PlayerController playerController = new PlayerController();
+            PlayerController playerController = new PlayerController(player);
+            _gameService.PlayerControlManager.RegisterPlayerController(playerController);
             AIController aiController = new AIController();
             GameSettings gameSettings = new GameSettings
             {

@@ -28,6 +28,11 @@ public class SessionManager
     {
         return _connectionIds.GetValueOrDefault(playerId);
     }
+    
+    public Player GetPlayer(string connectionId)
+    {
+        return _sessions[connectionId];
+    }
 
     public List<Player> GetConnectedPlayers()
     {

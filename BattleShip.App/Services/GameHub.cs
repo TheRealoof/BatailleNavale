@@ -112,4 +112,13 @@ public class GameHub(IAccessTokenProvider tokenProvider)
         });
     }
     
+    public void SendReady(string gameId)
+    {
+        if (HubConnection is null)
+        {
+            return;
+        }
+        HubConnection.SendAsync("PlayerReady", gameId);
+    }
+    
 }

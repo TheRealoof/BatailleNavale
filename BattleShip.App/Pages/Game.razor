@@ -1,10 +1,42 @@
 ﻿@page "/Game"
 @using BattleShip.App.Components
 
-<h1>Game</h1>
+<div id="game-view">
+
+    <div id="player1-view" class="player-view">
+        <p class="player-name">Player 1</p>
+        <div class="player-grid">
+            <GameGrid Rows="10" Columns="10" CellClicked="OnCellClickSelf"/>
+        </div>
+    </div>
+
+    <div id="vs-graphics">
+        <p>VS</p>
+    </div>
+
+    <div id="player2-view" class="player-view">
+        <p class="player-name">Player 2</p>
+        <div class="player-grid">
+            <GameGrid Rows="10" Columns="10" CellClicked="OnCellClickEnemy"/>
+        </div>
+    </div>
+
+</div>
 
 <GameHubConnectionHandler/>
 
 @code {
+
+    private void OnCellClickSelf((int row, int col) parameters)
+    {
+        var (row, col) = parameters;
+        Console.WriteLine($"Self clicked: {row}, {col}");
+    }
     
+    private void OnCellClickEnemy((int row, int col) parameters)
+    {
+        var (row, col) = parameters;
+        Console.WriteLine($"Enemy clicked: {row}, {col}");
+    }
+
 }

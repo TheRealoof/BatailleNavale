@@ -1,0 +1,31 @@
+﻿.game-grid {
+    
+}
+
+.grid-cell {
+    background-color: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(5px);
+    border-radius: 1px;
+}
+
+.grid-cell:hover {
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+.grid-cell:active {
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+.grid-cell-content
+{
+    --cell-size: 40px;
+    width: var(--cell-size);
+    height: var(--cell-size);
+    max-width: var(--cell-size);
+    max-height: var(--cell-size);
+    user-select: none;
+}
+
+.grid-cell-content p {
+    margin: 0;
+}

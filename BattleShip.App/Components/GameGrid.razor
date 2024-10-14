@@ -1,0 +1,38 @@
+﻿<div id="game-grid">
+    <table class="game-grid">
+        @for (int row = 0; row < Rows; row++)
+        {
+            <tr>
+                @for (int col = 0; col < Columns; col++)
+                {
+                    int currentRow = row;
+                    int currentCol = col;
+                    <td class="grid-cell" @onclick="() => OnCellClick(currentRow, currentCol)">
+                        <div class="grid-cell-content">
+                            <p>@row @col</p>
+                        </div>
+                    </td>
+                }
+            </tr>
+        }
+    </table>
+</div>
+
+@code {
+
+    private void OnCellClick(int row, int col)
+    {
+        CellClicked.InvokeAsync((row, col));
+    }
+
+}
+
+@code {
+
+    [Parameter] public int Rows { get; set; } = 10;
+
+    [Parameter] public int Columns { get; set; } = 10;
+    
+    [Parameter] public EventCallback<(int row, int col)> CellClicked { get; set; }
+
+}

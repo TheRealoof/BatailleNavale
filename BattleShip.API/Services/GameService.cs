@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using BattleShip.API.GameLogic;
 
 namespace BattleShip.API.Services;
 

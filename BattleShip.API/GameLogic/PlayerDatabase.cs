@@ -1,6 +1,6 @@
 ﻿using BattleShip.Models;
 
-namespace BattleShip.API;
+namespace BattleShip.API.GameLogic;
 
 public class PlayerDatabase
 {

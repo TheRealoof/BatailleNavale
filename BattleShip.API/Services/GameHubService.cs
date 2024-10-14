@@ -1,4 +1,5 @@
 ﻿using BattleShip.Models;
+using BattleShip.API.GameLogic;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BattleShip.API.Services;
@@ -23,25 +24,28 @@ public class GameHubService(IServiceProvider serviceProvider)
         await Clients.Client(connectionId).SendAsync("NotifyLeaveQueue");
     }
     
-    public async Task NotifyGameJoined(string playerId, Game game)
+    public async Task NotifyGameJoined(string playerId, GameLogic.Game game)
     {
         Console.WriteLine($"NotifyGameJoined: {game.Id.ToString()}");
-        Models.Game gameData = new Models.Game
-        {
-            Id = game.Id.ToString(),
-        };
+        Models.Game gameData = GetGameData(game);
         string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
         await Clients.Client(connectionId).SendAsync("NotifyGameJoined", gameData);
     }
     
-    public async Task NotifyGameLeft(string playerId, Game game)
+    public async Task NotifyGameLeft(string playerId, GameLogic.Game game)
     {
-        Models.Game gameData = new Models.Game
-        {
-            Id = game.Id.ToString(),
-        };
+        Models.Game gameData = GetGameData(game);
         string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
         await Clients.Client(connectionId).SendAsync("NotifyGameLeft", gameData);
+    }
+    
+    private Models.Game GetGameData(GameLogic.Game game)
+    {
+        return new Models.Game
+        {
+            Id = game.Id.ToString(),
+            Settings = game.GameSettings
+        };
     }
     
 }

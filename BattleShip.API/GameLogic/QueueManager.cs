@@ -1,7 +1,7 @@
 ﻿using BattleShip.API.Services;
 using BattleShip.Models;
 
-namespace BattleShip.API;
+namespace BattleShip.API.GameLogic;
 
 public class QueueManager : IDisposable
 {
@@ -92,7 +92,12 @@ public class QueueManager : IDisposable
             LeaveQueue(player);
             PlayerController playerController = new PlayerController();
             AIController aiController = new AIController();
-            Game game = new Game
+            GameSettings gameSettings = new GameSettings
+            {
+                GridWidth = 10,
+                GridHeight = 10,
+            };
+            Game game = new Game(gameSettings)
             {
                 Player1Controller = playerController,
                 Player2Controller = aiController

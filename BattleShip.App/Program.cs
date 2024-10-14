@@ -38,6 +38,7 @@ builder.Services.AddScoped(sp =>
 
 builder.Services.AddScoped<GameHub>();
 builder.Services.AddScoped<GameServer>();
+builder.Services.AddScoped<LocalGameReplication>();
 
 builder.Services.AddSingleton<LayoutService>();
 

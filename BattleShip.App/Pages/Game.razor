@@ -1,12 +1,15 @@
 ﻿@page "/Game"
 @using BattleShip.App.Components
+@using BattleShip.App.Services
+@inject LocalGameReplication LocalGameReplication
+@inject NavigationManager Navigation
 
 <div id="game-view">
 
     <div id="player1-view" class="player-view">
         <p class="player-name">Player 1</p>
         <div class="player-grid">
-            <GameGrid Rows="10" Columns="10" CellClicked="OnCellClickSelf"/>
+            <GameGrid Rows="@_game.Settings.GridHeight" Columns="@_game.Settings.GridWidth" CellClicked="OnCellClickSelf"/>
         </div>
     </div>
 
@@ -17,7 +20,7 @@
     <div id="player2-view" class="player-view">
         <p class="player-name">Player 2</p>
         <div class="player-grid">
-            <GameGrid Rows="10" Columns="10" CellClicked="OnCellClickEnemy"/>
+            <GameGrid Rows="@_game.Settings.GridHeight" Columns="@_game.Settings.GridWidth" CellClicked="OnCellClickEnemy"/>
         </div>
     </div>
 
@@ -27,12 +30,27 @@
 
 @code {
 
+    private Models.Game _game;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (LocalGameReplication.Game == null)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        _game = LocalGameReplication.Game;
+        Console.WriteLine($"Game started: {_game.Id} with grid size {_game.Settings.GridWidth}x{_game.Settings.GridHeight}");
+    }
+
     private void OnCellClickSelf((int row, int col) parameters)
     {
         var (row, col) = parameters;
         Console.WriteLine($"Self clicked: {row}, {col}");
     }
-    
+
     private void OnCellClickEnemy((int row, int col) parameters)
     {
         var (row, col) = parameters;

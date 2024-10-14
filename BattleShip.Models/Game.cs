@@ -3,8 +3,5 @@
 public class Game
 {
     public string Id { get; init; }
-
-    public Game()
-    {
-    }
+    public GameSettings Settings { get; init; }
 }

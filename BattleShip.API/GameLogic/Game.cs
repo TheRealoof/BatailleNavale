@@ -7,6 +7,8 @@ public class Game : IDisposable
     public readonly Guid Id;
 
     public readonly GameSettings GameSettings;
+    
+    public GameState State { get; private set; }
 
     public BaseController? Player1Controller { get; set; }
     public BaseController? Player2Controller { get; set; }
@@ -18,9 +20,9 @@ public class Game : IDisposable
 
     public Game(GameSettings gameSettings)
     {
-        Console.WriteLine("Game created!");
         Id = Guid.NewGuid();
         GameSettings = gameSettings;
+        State = GameState.WaitingForPlayers;
         _isRunning = true;
         _gameThread = new Thread(RunGame);
         _gameThread.Start();
@@ -39,11 +41,16 @@ public class Game : IDisposable
 
     private void RunGame()
     {
-        Console.WriteLine("Game started!");
-
+        State = GameState.WaitingForPlayers;
+        Console.WriteLine("Waiting for players to be ready...");
         WaitForPlayers();
-
-        // Run game
+        
+        State = GameState.PlacingShips;
+        Console.WriteLine("Placing ships...");
+        PlaceShips();
+        
+        State = GameState.Playing;
+        Console.WriteLine("Game started!");
         while (_isRunning)
         {
             // handle player 1
@@ -61,12 +68,12 @@ public class Game : IDisposable
 
             HandlePlayer(Player2Controller);
         }
+        
+        State = GameState.GameOver;
     }
 
     private void WaitForPlayers()
     {
-        Console.WriteLine("Waiting for players to be ready...");
-
         while (_isRunning)
         {
             bool player1Ready = !(Player1Controller is null || !Player1Controller.IsReady);
@@ -79,8 +86,11 @@ public class Game : IDisposable
 
             Thread.Sleep(100);
         }
-
-        Console.WriteLine("Players are ready!");
+    }
+    
+    private void PlaceShips()
+    {
+        
     }
 
     private void HandlePlayer(BaseController playerController)

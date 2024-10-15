@@ -11,8 +11,9 @@ public class GameHub(IAccessTokenProvider tokenProvider)
     public event Action? OnStateChanged;
     public event Action<QueueType>? OnQueueJoined;
     public event Action? OnQueueLeft;
-    public event Action<Game>? OnGameJoined;
-    public event Action<Game>? OnGameLeft;
+    public event Action<GameData>? OnGameJoined;
+    public event Action<GameData>? OnGameLeft;
+    public event Action<GameState>? OnGameStateChanged;
 
     private async Task BuildHubConnection()
     {
@@ -101,14 +102,19 @@ public class GameHub(IAccessTokenProvider tokenProvider)
             OnQueueLeft?.Invoke();
         });
         
-        HubConnection.On<Game>("NotifyGameJoined", game =>
+        HubConnection.On<GameData>("NotifyGameJoined", game =>
         {
             OnGameJoined?.Invoke(game);
         });
         
-        HubConnection.On<Game>("NotifyGameLeft", game =>
+        HubConnection.On<GameData>("NotifyGameLeft", game =>
         {
             OnGameLeft?.Invoke(game);
+        });
+        
+        HubConnection.On<GameState>("NotifyGameStateChanged", state =>
+        {
+            OnGameStateChanged?.Invoke(state);
         });
     }
     

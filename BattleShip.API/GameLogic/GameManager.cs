@@ -17,6 +17,7 @@ public class GameManager : IDisposable
     public void CreateGame(Game game)
     {
         _lobbies.Add(game.Id, game);
+        game.Start();
         Console.WriteLine($"Game created: {game.Id}");
     }
 

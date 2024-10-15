@@ -1,6 +1,7 @@
 ﻿@page "/Game"
 @using BattleShip.App.Components
 @using BattleShip.App.Services
+@using BattleShip.Models
 @inject LocalGameReplication LocalGameReplication
 @inject NavigationManager Navigation
 
@@ -9,7 +10,7 @@
     <div id="player1-view" class="player-view">
         <p class="player-name">Player 1</p>
         <div class="player-grid">
-            <GameGrid Rows="@_game.Settings.GridHeight" Columns="@_game.Settings.GridWidth" CellClicked="OnCellClickSelf"/>
+            <GameGrid Rows="@_gameData.Settings.GridHeight" Columns="@_gameData.Settings.GridWidth" CellClicked="OnCellClickSelf"/>
         </div>
     </div>
 
@@ -20,7 +21,7 @@
     <div id="player2-view" class="player-view">
         <p class="player-name">Player 2</p>
         <div class="player-grid">
-            <GameGrid Rows="@_game.Settings.GridHeight" Columns="@_game.Settings.GridWidth" CellClicked="OnCellClickEnemy"/>
+            <GameGrid Rows="@_gameData.Settings.GridHeight" Columns="@_gameData.Settings.GridWidth" CellClicked="OnCellClickEnemy"/>
         </div>
     </div>
 
@@ -30,19 +31,22 @@
 
 @code {
 
-    private Models.Game _game = null!;
+    private GameData _gameData = null!;
+    
+    private GameState _gameState = GameState.WaitingForPlayers;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        if (LocalGameReplication.Game == null)
+        if (LocalGameReplication.GameData == null)
         {
             Navigation.NavigateTo("/");
             return;
         }
 
-        _game = LocalGameReplication.Game;
-        Console.WriteLine($"Game started: {_game.Id} with grid size {_game.Settings.GridWidth}x{_game.Settings.GridHeight}");
+        _gameData = LocalGameReplication.GameData;
+        LocalGameReplication.OnStateChanged += OnStateChanged;
+        Console.WriteLine($"Game started: {_gameData.Id} with grid size {_gameData.Settings.GridWidth}x{_gameData.Settings.GridHeight}");
         LocalGameReplication.SendReady();
     }
 
@@ -56,6 +60,13 @@
     {
         var (row, col) = parameters;
         Console.WriteLine($"Enemy clicked: {row}, {col}");
+    }
+    
+    private void OnStateChanged(GameState state)
+    {
+        _gameState = state;
+        Console.WriteLine($"Game state changed: {_gameState}");
+        StateHasChanged();
     }
 
 }

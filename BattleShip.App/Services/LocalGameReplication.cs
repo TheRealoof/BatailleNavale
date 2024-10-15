@@ -5,10 +5,14 @@ namespace BattleShip.App.Services;
 
 public class LocalGameReplication
 {
-    public Game? Game { get; set; }
+    public GameData? GameData { get; set; }
 
     private readonly NavigationManager _navigation;
     private readonly GameHub _gameHub;
+
+    public GameState State { get; private set; } = GameState.WaitingForPlayers;
+    
+    public event Action<GameState>? OnStateChanged;
 
     public LocalGameReplication(GameHub gameHub, NavigationManager navigation)
     {
@@ -16,27 +20,34 @@ public class LocalGameReplication
         _navigation = navigation;
         gameHub.OnGameJoined += OnGameJoined;
         gameHub.OnGameLeft += OnGameLeft;
+        gameHub.OnGameStateChanged += OnGameStateChanged;
     }
     
-    private void OnGameJoined(Game game)
+    private void OnGameJoined(GameData gameData)
     {
-        Game = game;
+        GameData = gameData;
         _navigation.NavigateTo("/game");
     }
     
-    private void OnGameLeft(Game game)
+    private void OnGameLeft(GameData gameData)
     {
-        Game = null;
+        GameData = null;
         _navigation.NavigateTo("/menu");
     }
     
     public void SendReady()
     {
-        if (Game is null)
+        if (GameData is null)
         {
             return;
         }
-        _gameHub.SendReady(Game.Id);
+        _gameHub.SendReady(GameData.Id);
+    }
+    
+    private void OnGameStateChanged(GameState state)
+    {
+        OnStateChanged?.Invoke(state);
+        State = state;
     }
     
 }

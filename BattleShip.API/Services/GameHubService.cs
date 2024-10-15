@@ -27,21 +27,27 @@ public class GameHubService(IServiceProvider serviceProvider)
     public async Task NotifyGameJoined(string playerId, GameLogic.Game game)
     {
         Console.WriteLine($"NotifyGameJoined: {game.Id.ToString()}");
-        Models.Game gameData = GetGameData(game);
+        Models.GameData gameDataData = GetGameData(game);
         string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
-        await Clients.Client(connectionId).SendAsync("NotifyGameJoined", gameData);
+        await Clients.Client(connectionId).SendAsync("NotifyGameJoined", gameDataData);
     }
     
     public async Task NotifyGameLeft(string playerId, GameLogic.Game game)
     {
-        Models.Game gameData = GetGameData(game);
+        Models.GameData gameDataData = GetGameData(game);
         string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
-        await Clients.Client(connectionId).SendAsync("NotifyGameLeft", gameData);
+        await Clients.Client(connectionId).SendAsync("NotifyGameLeft", gameDataData);
+    }
+
+    public async Task NotifyGameStateChanged(string playerId, GameState gameState)
+    {
+        string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
+        await Clients.Client(connectionId).SendAsync("NotifyGameStateChanged", gameState);
     }
     
-    private Models.Game GetGameData(GameLogic.Game game)
+    private Models.GameData GetGameData(GameLogic.Game game)
     {
-        return new Models.Game
+        return new Models.GameData
         {
             Id = game.Id.ToString(),
             Settings = game.GameSettings

@@ -91,19 +91,18 @@ public class QueueManager : IDisposable
         {
             Player player = _againstAIQueue.First();
             LeaveQueue(player);
-            PlayerController playerController = new PlayerController(player);
-            _gameService.PlayerControlManager.RegisterPlayerController(playerController);
-            AIController aiController = new AIController();
             GameSettings gameSettings = new GameSettings
             {
                 GridWidth = 10,
                 GridHeight = 10,
+                ShipLengths = [5, 4, 3, 3, 2]
             };
-            Game game = new Game(gameSettings)
-            {
-                Player1Controller = playerController,
-                Player2Controller = aiController
-            };
+            Game game = new Game(_gameService, gameSettings);
+            PlayerController playerController = new PlayerController(game, game.Player1Grid, game.Player2Grid, player);
+            _gameService.PlayerControlManager.RegisterPlayerController(playerController);
+            AIController aiController = new AIController(game, game.Player2Grid, game.Player1Grid);
+            game.Player1Controller = playerController;
+            game.Player2Controller = aiController;
             _gameService.GameManager.CreateGame(game);
             _ = _gameService.GameHub.NotifyGameJoined(player.Id, game);
         }

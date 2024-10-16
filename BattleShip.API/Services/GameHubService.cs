@@ -24,7 +24,7 @@ public class GameHubService(IServiceProvider serviceProvider)
         await Clients.Client(connectionId).SendAsync("NotifyLeaveQueue");
     }
     
-    public async Task NotifyGameJoined(string playerId, GameLogic.Game game)
+    public async Task NotifyGameJoined(string playerId, Game game)
     {
         Console.WriteLine($"NotifyGameJoined: {game.Id.ToString()}");
         Models.GameData gameDataData = GetGameData(game);
@@ -32,7 +32,7 @@ public class GameHubService(IServiceProvider serviceProvider)
         await Clients.Client(connectionId).SendAsync("NotifyGameJoined", gameDataData);
     }
     
-    public async Task NotifyGameLeft(string playerId, GameLogic.Game game)
+    public async Task NotifyGameLeft(string playerId, Game game)
     {
         Models.GameData gameDataData = GetGameData(game);
         string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
@@ -45,9 +45,16 @@ public class GameHubService(IServiceProvider serviceProvider)
         await Clients.Client(connectionId).SendAsync("NotifyGameStateChanged", gameState);
     }
     
-    private Models.GameData GetGameData(GameLogic.Game game)
+    public async Task NotifyShipsChanged(string playerId, List<ShipData> ships)
     {
-        return new Models.GameData
+        string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
+        await Clients.Client(connectionId).SendAsync("NotifyShipsChanged", ships);
+        Console.WriteLine("NotifyShipsChanged");
+    }
+    
+    private GameData GetGameData(Game game)
+    {
+        return new GameData
         {
             Id = game.Id.ToString(),
             Settings = game.GameSettings

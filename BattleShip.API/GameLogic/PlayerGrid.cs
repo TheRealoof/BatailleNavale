@@ -12,6 +12,8 @@ public class PlayerGrid
     private readonly HashSet<Ship> _ships = new();
     public IReadOnlyCollection<Ship> Ships => _ships;
     
+    public event Action? OnShipAdded; 
+    
     public PlayerGrid(GameSettings settings)
     {
         Width = settings.GridWidth;
@@ -22,11 +24,7 @@ public class PlayerGrid
     public void AddShip(Ship ship)
     {
         _ships.Add(ship);
-    }
-
-    public bool IsPresent(int x, int y)
-    {
-        return true;
+        OnShipAdded?.Invoke();
     }
     
     public bool AllBoatsPlaced()
@@ -37,6 +35,23 @@ public class PlayerGrid
             lengths.Remove(ship.Length);
         }
         return lengths.Count == 0;
+    }
+    
+    public bool IsShipPresent(Coordinates coordinates)
+    {
+        foreach (Ship ship in _ships)
+        {
+            if (ship.IsPresent(coordinates))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public bool IsInBounds(Coordinates coordinates)
+    {
+        return coordinates.X >= 0 && coordinates.X < Width && coordinates.Y >= 0 && coordinates.Y < Height;
     }
 
     public void Hit()

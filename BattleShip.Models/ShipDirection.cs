@@ -1,6 +1,6 @@
 ﻿namespace BattleShip.Models;
 
-public enum BoatDirection
+public enum ShipDirection
 {
     Right,
     Down,

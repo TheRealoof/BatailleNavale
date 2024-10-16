@@ -1,15 +1,21 @@
-﻿<div id="game-grid">
+﻿@using BattleShip.Models
+<div id="game-grid">
     <table class="game-grid">
         @for (int row = 0; row < Rows; row++)
         {
             <tr>
                 @for (int col = 0; col < Columns; col++)
                 {
-                    int currentRow = row;
-                    int currentCol = col;
-                    <td class="grid-cell" @onclick="() => OnCellClick(currentRow, currentCol)">
+                    int x = col;
+                    int y = row;
+                    <td class="grid-cell" @onclick="() => OnCellClick(x, y)">
                         <div class="grid-cell-content">
-                            <p>@row @col</p>
+                            @{ _shipTiles.TryGetValue(new Coordinates(x, y), out ShipTile? tile); }
+                            @if (tile != null)
+                            {
+                                <img src="@tile.Image" alt="Ship" class="grid-sprite" 
+                                     style="transform: rotate(@(tile.Rotation)deg) scaleY(@(tile.Mirrored ? -1 : 1))"/>
+                            }
                         </div>
                     </td>
                 }
@@ -20,9 +26,9 @@
 
 @code {
 
-    private void OnCellClick(int row, int col)
+    private void OnCellClick(int x, int y)
     {
-        CellClicked.InvokeAsync((row, col));
+        CellClicked.InvokeAsync((x, y));
     }
 
 }
@@ -32,7 +38,83 @@
     [Parameter] public int Rows { get; set; } = 10;
 
     [Parameter] public int Columns { get; set; } = 10;
-    
-    [Parameter] public EventCallback<(int row, int col)> CellClicked { get; set; }
+
+    [Parameter] public EventCallback<(int x, int y)> CellClicked { get; set; }
+
+    [Parameter] public List<ShipData> Ships { get; set; } = [];
+
+    private class ShipTile
+    {
+        public string Image { get; set; } = "";
+        public int Rotation { get; set; } = 0;
+        public bool Mirrored { get; set; } = false;
+    }
+
+    private Dictionary<Coordinates, ShipTile> _shipTiles = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Redraw();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Redraw();
+    }
+
+    private void Redraw()
+    {
+        _shipTiles.Clear();
+        foreach (var ship in Ships)
+        {
+            Console.WriteLine($"Ship {ship.Length}");
+            bool isVertical = ship.Direction is ShipDirection.Up or ShipDirection.Down;
+            bool negate = ship.Direction is ShipDirection.Up or ShipDirection.Left;
+            if (isVertical)
+            {
+                for (int i = 0; i < ship.Length; i++)
+                {
+                    Coordinates coordinates = new Coordinates
+                    {
+                        X = ship.Coordinates.X,
+                        Y = ship.Coordinates.Y + i * (negate ? -1 : 1)
+                    };
+                    string shipColor = "Yellow";
+                    string shipPart = i == 0 ? "back" : (i == ship.Length - 1 ? "front" : "mid");
+                    int rotation = negate ? 90 : 270;
+                    _shipTiles[coordinates] = new ShipTile
+                    {
+                        Image = $"images/ships/{shipColor}_{shipPart}.png",
+                        Rotation = rotation,
+                        Mirrored = !negate
+                    };
+                }
+            }
+            else
+            {
+                for (int i = 0; i < ship.Length; i++)
+                {
+                    Coordinates coordinates = new Coordinates
+                    {
+                        X = ship.Coordinates.X + i * (negate ? -1 : 1),
+                        Y = ship.Coordinates.Y
+                    };
+                    string shipColor = "Yellow";
+                    string shipPart = i == 0 ? "back" : (i == ship.Length - 1 ? "front" : "mid");
+                    int rotation = negate ? 0 : 180;
+                    _shipTiles[coordinates] = new ShipTile
+                    {
+                        Image = $"images/ships/{shipColor}_{shipPart}.png",
+                        Rotation = rotation,
+                        Mirrored = !negate
+                    };
+                }
+            }
+        }
+
+        StateHasChanged();
+    }
 
 }

@@ -64,32 +64,22 @@ public class Game : IDisposable
         NotifyStateChange();
         Console.WriteLine("Waiting for players to be ready...");
         WaitForPlayers();
+        
+        if (!_isRunning) return;
 
         State = GameState.PlacingShips;
         NotifyStateChange();
         Console.WriteLine("Placing ships...");
         PlaceShips();
+        
+        if (!_isRunning) return;
 
         State = GameState.Playing;
         NotifyStateChange();
         Console.WriteLine("Game started!");
-        while (_isRunning)
-        {
-            // handle player 1
-            while (Player1Controller is null)
-            {
-                Thread.Sleep(100);
-            }
-
-            HandlePlayer(Player1Controller);
-            // handle player 2
-            while (Player2Controller is null)
-            {
-                Thread.Sleep(100);
-            }
-
-            HandlePlayer(Player2Controller);
-        }
+        GameLogic();
+        
+        if (!_isRunning) return;
 
         State = GameState.GameOver;
         NotifyStateChange();
@@ -127,19 +117,40 @@ public class Game : IDisposable
 
             Thread.Sleep(100);
         }
+        Player1Controller.CanPlaceShips = false;
+        Player2Controller.CanPlaceShips = false;
         
         // log player 1 ships
         Console.WriteLine("Player 1 ships:");
         foreach (Ship ship in Player1Grid.Ships)
         {
-            // log x y direction and length
-            Console.WriteLine("Ship placed at x: {0}, y: {1}, direction: {2}, length: {3}", ship.PositionX, ship.PositionY, ship.Direction, ship.Length);
+            Console.WriteLine($"Ship placed at {ship.Coordinates}, direction: {ship.Direction}, length: {ship.Length}");
         }
         Console.WriteLine("Player 2 ships:");
         foreach (Ship ship in Player2Grid.Ships)
         {
-            // log x y direction and length
-            Console.WriteLine("Ship placed at x: {0}, y: {1}, direction: {2}, length: {3}", ship.PositionX, ship.PositionY, ship.Direction, ship.Length);
+            Console.WriteLine($"Ship placed at {ship.Coordinates}, direction: {ship.Direction}, length: {ship.Length}");
+        }
+    }
+
+    private void GameLogic()
+    {
+        while (_isRunning)
+        {
+            // handle player 1
+            while (Player1Controller is null)
+            {
+                Thread.Sleep(100);
+            }
+
+            PlayerTurn(Player1Controller);
+            // handle player 2
+            while (Player2Controller is null)
+            {
+                Thread.Sleep(100);
+            }
+
+            PlayerTurn(Player2Controller);
         }
     }
 
@@ -149,7 +160,7 @@ public class Game : IDisposable
         Player2Controller.NotifyGameStateChanged(State);
     }
 
-    private void HandlePlayer(BaseController playerController)
+    private void PlayerTurn(BaseController playerController)
     {
         // handle player
         _currentPlayer = playerController;

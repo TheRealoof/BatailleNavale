@@ -21,4 +21,14 @@ public class PlayerController : BaseController
     {
         _ = GameService.GameHub.NotifyGameStateChanged(Player.Id, state);
     }
+
+    public override void NotifyShipsChanged()
+    {
+        _ = GameService.GameHub.NotifyShipsChanged(Player.Id, PlayerGrid.Ships.Select(ship => new ShipData
+        {
+            Length = ship.Length,
+            Coordinates = ship.Coordinates,
+            Direction = ship.Direction
+        }).ToList());
+    }
 }

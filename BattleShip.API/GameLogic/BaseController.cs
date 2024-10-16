@@ -30,18 +30,24 @@ public abstract class BaseController
         OpponentGrid = opponentGrid;
         IsReady = false;
         CanPlaceShips = false;
+        playerGrid.OnShipAdded += NotifyShipsChanged;
     }
 
     public virtual void NotifyGameStateChanged(GameState state)
     {
     }
-    
+
+    public virtual void NotifyShipsChanged()
+    {
+    }
+
     public virtual void CanPlaceShipsChanged()
     {
         if (!CanPlaceShips)
         {
             return;
         }
+
         for (var i = 0; i < PlayerGrid.ShipLengths.Length; i++)
         {
             int length = PlayerGrid.ShipLengths[i];
@@ -51,17 +57,32 @@ public abstract class BaseController
 
     void GenerateShip(int length)
     {
-        bool success = false;
-        while (!success)
+        while (true)
         {
+            Console.WriteLine("Attempting to place ship of length " + length);
             int x = new Random().Next(0, Game.GameSettings.GridWidth);
             int y = new Random().Next(0, Game.GameSettings.GridHeight);
-            BoatDirection direction = (BoatDirection) new Random().Next(0, 4);
+            ShipDirection direction = (ShipDirection)new Random().Next(0, 4);
             Ship ship = new Ship(x, y, length, direction);
-            // TODO check if ship doesn't overlap with other ships
-            PlayerGrid.AddShip(ship);
-            success = true;
+            
+            if (IsShipValid(ship))
+            {
+                PlayerGrid.AddShip(ship);
+                break;
+            }
         }
+    }
+    
+    private bool IsShipValid(Ship ship)
+    {
+        foreach (Coordinates coordinates in ship.CoordinatesList)
+        {
+            if (!PlayerGrid.IsInBounds(coordinates) || PlayerGrid.IsShipPresent(coordinates))
+            {
+                return false;
+            }
+        }
+        return true;
     }
     
 }

@@ -10,7 +10,11 @@
     <div id="player1-view" class="player-view">
         <p class="player-name">Player 1</p>
         <div class="player-grid">
-            <GameGrid Rows="@_gameData.Settings.GridHeight" Columns="@_gameData.Settings.GridWidth" CellClicked="OnCellClickSelf"/>
+            <GameGrid
+                Rows="@_gameData.Settings.GridHeight"
+                Columns="@_gameData.Settings.GridWidth"
+                CellClicked="OnCellClickSelf"
+                Ships="@_playerShips"/>
         </div>
     </div>
 
@@ -21,7 +25,11 @@
     <div id="player2-view" class="player-view">
         <p class="player-name">Player 2</p>
         <div class="player-grid">
-            <GameGrid Rows="@_gameData.Settings.GridHeight" Columns="@_gameData.Settings.GridWidth" CellClicked="OnCellClickEnemy"/>
+            <GameGrid
+                Rows="@_gameData.Settings.GridHeight"
+                Columns="@_gameData.Settings.GridWidth"
+                CellClicked="OnCellClickEnemy"
+                Ships="_enemyShips"/>
         </div>
     </div>
 
@@ -32,8 +40,11 @@
 @code {
 
     private GameData _gameData = null!;
-    
+
     private GameState _gameState = GameState.WaitingForPlayers;
+
+    private List<ShipData> _playerShips = [];
+    private List<ShipData> _enemyShips = [];
 
     protected override void OnInitialized()
     {
@@ -46,26 +57,33 @@
 
         _gameData = LocalGameReplication.GameData;
         LocalGameReplication.OnStateChanged += OnStateChanged;
+        LocalGameReplication.OnShipsChanged += OnShipsChanged;
         Console.WriteLine($"Game started: {_gameData.Id} with grid size {_gameData.Settings.GridWidth}x{_gameData.Settings.GridHeight}");
         LocalGameReplication.SendReady();
     }
 
-    private void OnCellClickSelf((int row, int col) parameters)
+    private void OnCellClickSelf((int x, int y) parameters)
     {
-        var (row, col) = parameters;
-        Console.WriteLine($"Self clicked: {row}, {col}");
+        var (x, y) = parameters;
+        Console.WriteLine($"Self clicked: {x}, {y}");
     }
 
-    private void OnCellClickEnemy((int row, int col) parameters)
+    private void OnCellClickEnemy((int x, int y) parameters)
     {
-        var (row, col) = parameters;
-        Console.WriteLine($"Enemy clicked: {row}, {col}");
+        var (x, y) = parameters;
+        Console.WriteLine($"Enemy clicked: {x}, {y}");
     }
-    
+
     private void OnStateChanged(GameState state)
     {
         _gameState = state;
         Console.WriteLine($"Game state changed: {_gameState}");
+        StateHasChanged();
+    }
+
+    private void OnShipsChanged(List<ShipData> ships)
+    {
+        _playerShips = ships;
         StateHasChanged();
     }
 

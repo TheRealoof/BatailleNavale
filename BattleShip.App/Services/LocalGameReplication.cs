@@ -5,7 +5,8 @@ namespace BattleShip.App.Services;
 
 public class LocalGameReplication
 {
-    public GameData? GameData { get; set; }
+    public GameData? GameData { get; private set; }
+    public List<ShipData> Ships { get; private set; } = new();
 
     private readonly NavigationManager _navigation;
     private readonly GameHub _gameHub;
@@ -13,6 +14,7 @@ public class LocalGameReplication
     public GameState State { get; private set; } = GameState.WaitingForPlayers;
     
     public event Action<GameState>? OnStateChanged;
+    public event Action<List<ShipData>>? OnShipsChanged; 
 
     public LocalGameReplication(GameHub gameHub, NavigationManager navigation)
     {
@@ -20,9 +22,10 @@ public class LocalGameReplication
         _navigation = navigation;
         gameHub.OnGameJoined += OnGameJoined;
         gameHub.OnGameLeft += OnGameLeft;
-        gameHub.OnGameStateChanged += OnGameStateChanged;
+        gameHub.OnGameStateChanged += OnStateChangedHandler;
+        gameHub.OnShipsChanged += OnShipsChangedHandler;
     }
-    
+
     private void OnGameJoined(GameData gameData)
     {
         GameData = gameData;
@@ -44,10 +47,16 @@ public class LocalGameReplication
         _gameHub.SendReady(GameData.Id);
     }
     
-    private void OnGameStateChanged(GameState state)
+    private void OnStateChangedHandler(GameState state)
     {
-        OnStateChanged?.Invoke(state);
         State = state;
+        OnStateChanged?.Invoke(state);
+    }
+    
+    private void OnShipsChangedHandler(List<ShipData> ships)
+    {
+        Ships = ships;
+        OnShipsChanged?.Invoke(ships);
     }
     
 }

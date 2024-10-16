@@ -6,65 +6,49 @@ public class Ship
 {
     private bool Alive { get; set; } = true;
 
-    public readonly int PositionX;
-    public readonly int PositionY;
+    public readonly Coordinates Coordinates;
 
     public readonly int Length;
 
-    public readonly BoatDirection Direction;
+    public readonly ShipDirection Direction;
 
-    public Ship(int positionX, int positionY, int length, BoatDirection direction)
+    public readonly List<Coordinates> CoordinatesList;
+
+    public Ship(int positionX, int positionY, int length, ShipDirection direction)
     {
-        PositionX = positionX;
-        PositionY = positionY;
+        Coordinates = new Coordinates(positionX, positionY);
         Length = length;
         Direction = direction;
+        CoordinatesList = [];
+        ComputeCoordinates();
     }
-
-    public bool CheckHit(int x, int y)
+    
+    public void ComputeCoordinates()
     {
-        // Check if the boat is still alive
-        if (!Alive)
-        {
-            return false;
-        }
-
-        // Check if the hit is within the boat's bounds
-        bool vertical = Direction == BoatDirection.Down || Direction == BoatDirection.Up;
-        bool negative = Direction == BoatDirection.Up || Direction == BoatDirection.Left;
-        int direction = (negative ? -1 : 1) * Length;
+        bool vertical = Direction == ShipDirection.Down || Direction == ShipDirection.Up;
+        bool negative = Direction == ShipDirection.Up || Direction == ShipDirection.Left;
 
         if (vertical)
         {
-            if (x != PositionX)
+            for (int i = 0; i < Length; i++)
             {
-                return false;
-            }
-
-            for (int i = PositionY; i != PositionY + direction; i += negative ? -1 : 1)
-            {
-                if (i == y)
-                {
-                    return true;
-                }
+                int y = negative ? -i : i;
+                CoordinatesList.Add(Coordinates + new Coordinates(0, y));
             }
         }
         else
         {
-            if (y != PositionY)
+            for (int i = 0; i < Length; i++)
             {
-                return false;
-            }
-
-            for (int i = PositionX; i != PositionX + direction; i += negative ? -1 : 1)
-            {
-                if (i == x)
-                {
-                    return true;
-                }
+                int x = negative ? -i : i;
+                CoordinatesList.Add(Coordinates + new Coordinates(x, 0));
             }
         }
-
-        return false;
     }
+    
+    public bool IsPresent(Coordinates coordinates)
+    {
+        return CoordinatesList.Any(c => c == coordinates);
+    }
+    
 }

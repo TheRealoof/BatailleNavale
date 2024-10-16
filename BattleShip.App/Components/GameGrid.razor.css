@@ -18,7 +18,7 @@
 
 .grid-cell-content
 {
-    --cell-size: 40px;
+    --cell-size: 32px;
     width: var(--cell-size);
     height: var(--cell-size);
     max-width: var(--cell-size);
@@ -28,4 +28,11 @@
 
 .grid-cell-content p {
     margin: 0;
+}
+
+.grid-cell .grid-sprite {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
 }

@@ -22,6 +22,18 @@ public abstract class BaseController
             CanPlaceShipsChanged();
         }
     }
+    
+    private bool _isTurn;
+    
+    public bool IsTurn
+    {
+        get => _isTurn;
+        set
+        {
+            _isTurn = value;
+            IsTurnChanged();
+        }
+    }
 
     public BaseController(Game game, PlayerGrid playerGrid, PlayerGrid opponentGrid)
     {
@@ -83,6 +95,10 @@ public abstract class BaseController
             }
         }
         return true;
+    }
+    
+    public virtual void IsTurnChanged()
+    {
     }
     
 }

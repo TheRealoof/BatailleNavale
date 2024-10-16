@@ -31,4 +31,9 @@ public class PlayerController : BaseController
             Direction = ship.Direction
         }).ToList());
     }
+
+    public override void IsTurnChanged()
+    {
+        _ = GameService.GameHub.NotifyIsTurnChanged(Player.Id, IsTurn);
+    }
 }

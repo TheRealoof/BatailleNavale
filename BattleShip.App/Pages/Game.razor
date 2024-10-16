@@ -5,32 +5,62 @@
 @inject LocalGameReplication LocalGameReplication
 @inject NavigationManager Navigation
 
-<div id="game-view">
+<div>
 
-    <div id="player1-view" class="player-view">
-        <p class="player-name">Player 1</p>
-        <div class="player-grid">
-            <GameGrid
-                Rows="@_gameData.Settings.GridHeight"
-                Columns="@_gameData.Settings.GridWidth"
-                CellClicked="OnCellClickSelf"
-                Ships="@_playerShips"/>
-        </div>
+    <div id="game-header">
+        @{
+            string status = "";
+            string description = "";
+            switch (_gameState)
+            {
+                case GameState.WaitingForPlayers:
+                    status = "Waiting for players...";
+                    break;
+                case GameState.PlacingShips:
+                    status = "Place your ships";
+                    description = "Click on the grid to place your ships";
+                    break;
+                case GameState.Playing:
+                    status = (_isPlayerTurn) ? "Your turn" : "Enemy's turn";
+                    break;
+                case GameState.GameOver:
+                    status = "Game over";
+                    break;
+                default: throw new NotImplementedException();
+            }
+        }
+        <p id="game-header-status">@status</p>
+        <p id="game-header-status-description">@description</p>
     </div>
 
-    <div id="vs-graphics">
-        <p>VS</p>
-    </div>
+    <div id="game-view">
 
-    <div id="player2-view" class="player-view">
-        <p class="player-name">Player 2</p>
-        <div class="player-grid">
-            <GameGrid
-                Rows="@_gameData.Settings.GridHeight"
-                Columns="@_gameData.Settings.GridWidth"
-                CellClicked="OnCellClickEnemy"
-                Ships="_enemyShips"/>
+        <div id="player1-view" class="player-view">
+            <div class="player-grid">
+                <GameGrid
+                    Rows="@_gameData.Settings.GridHeight"
+                    Columns="@_gameData.Settings.GridWidth"
+                    CellClicked="OnCellClickSelf"
+                    Ships="@_playerShips"/>
+            </div>
+            <p class="player-name">Player 1</p>
         </div>
+
+        <div id="vs-graphics">
+            <p>VS</p>
+        </div>
+
+        <div id="player2-view" class="player-view">
+            <div class="player-grid">
+                <GameGrid
+                    Rows="@_gameData.Settings.GridHeight"
+                    Columns="@_gameData.Settings.GridWidth"
+                    CellClicked="OnCellClickEnemy"
+                    Ships="_enemyShips"/>
+            </div>
+            <p class="player-name">Player 2</p>
+        </div>
+
     </div>
 
 </div>
@@ -42,6 +72,7 @@
     private GameData _gameData = null!;
 
     private GameState _gameState = GameState.WaitingForPlayers;
+    private bool _isPlayerTurn = false;
 
     private List<ShipData> _playerShips = [];
     private List<ShipData> _enemyShips = [];
@@ -58,6 +89,7 @@
         _gameData = LocalGameReplication.GameData;
         LocalGameReplication.OnStateChanged += OnStateChanged;
         LocalGameReplication.OnShipsChanged += OnShipsChanged;
+        LocalGameReplication.OnTurnChanged += OnTurnChanged;
         Console.WriteLine($"Game started: {_gameData.Id} with grid size {_gameData.Settings.GridWidth}x{_gameData.Settings.GridHeight}");
         LocalGameReplication.SendReady();
     }
@@ -84,6 +116,13 @@
     private void OnShipsChanged(List<ShipData> ships)
     {
         _playerShips = ships;
+        StateHasChanged();
+    }
+
+    private void OnTurnChanged(bool isPlayerTurn)
+    {
+        _isPlayerTurn = isPlayerTurn;
+        Console.WriteLine($"Turn changed: {isPlayerTurn}");
         StateHasChanged();
     }
 

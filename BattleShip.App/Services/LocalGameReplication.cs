@@ -7,6 +7,7 @@ public class LocalGameReplication
 {
     public GameData? GameData { get; private set; }
     public List<ShipData> Ships { get; private set; } = new();
+    public bool IsTurn { get; private set; }
 
     private readonly NavigationManager _navigation;
     private readonly GameHub _gameHub;
@@ -15,6 +16,7 @@ public class LocalGameReplication
     
     public event Action<GameState>? OnStateChanged;
     public event Action<List<ShipData>>? OnShipsChanged; 
+    public event Action<bool>? OnTurnChanged; 
 
     public LocalGameReplication(GameHub gameHub, NavigationManager navigation)
     {
@@ -24,6 +26,7 @@ public class LocalGameReplication
         gameHub.OnGameLeft += OnGameLeft;
         gameHub.OnGameStateChanged += OnStateChangedHandler;
         gameHub.OnShipsChanged += OnShipsChangedHandler;
+        gameHub.OnTurnChanged += OnTurnChangedHandler;
     }
 
     private void OnGameJoined(GameData gameData)
@@ -57,6 +60,12 @@ public class LocalGameReplication
     {
         Ships = ships;
         OnShipsChanged?.Invoke(ships);
+    }
+    
+    private void OnTurnChangedHandler(bool isTurn)
+    {
+        IsTurn = isTurn;
+        OnTurnChanged?.Invoke(isTurn);
     }
     
 }

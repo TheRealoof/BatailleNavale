@@ -60,6 +60,16 @@ public class Game : IDisposable
 
     private void RunGame()
     {
+        if (Player1Controller is null || Player2Controller is null)
+        {
+            throw new InvalidOperationException("Both players must be set before starting the game.");
+        }
+        
+        Player1Controller.CanPlaceShips = false;
+        Player2Controller.CanPlaceShips = false;
+        Player1Controller.IsTurn = false;
+        Player2Controller.IsTurn = false;
+        
         State = GameState.WaitingForPlayers;
         NotifyStateChange();
         Console.WriteLine("Waiting for players to be ready...");
@@ -137,19 +147,7 @@ public class Game : IDisposable
     {
         while (_isRunning)
         {
-            // handle player 1
-            while (Player1Controller is null)
-            {
-                Thread.Sleep(100);
-            }
-
             PlayerTurn(Player1Controller);
-            // handle player 2
-            while (Player2Controller is null)
-            {
-                Thread.Sleep(100);
-            }
-
             PlayerTurn(Player2Controller);
         }
     }
@@ -164,5 +162,10 @@ public class Game : IDisposable
     {
         // handle player
         _currentPlayer = playerController;
+        _currentPlayer.IsTurn = true;
+        while (_isRunning && _currentPlayer.IsTurn)
+        {
+            Thread.Sleep(100);
+        }
     }
 }

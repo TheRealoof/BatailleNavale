@@ -15,6 +15,7 @@ public class GameHub(IAccessTokenProvider tokenProvider)
     public event Action<GameData>? OnGameLeft;
     public event Action<GameState>? OnGameStateChanged;
     public event Action<List<ShipData>>? OnShipsChanged; 
+    public event Action<bool>? OnTurnChanged;
 
     private async Task BuildHubConnection()
     {
@@ -120,8 +121,12 @@ public class GameHub(IAccessTokenProvider tokenProvider)
         
         HubConnection.On<List<ShipData>>("NotifyShipsChanged", ships =>
         {
-            Console.WriteLine("Ships changed");
             OnShipsChanged?.Invoke(ships);
+        });
+        
+        HubConnection.On<bool>("NotifyIsTurnChanged", isTurn =>
+        {
+            OnTurnChanged?.Invoke(isTurn);
         });
     }
     

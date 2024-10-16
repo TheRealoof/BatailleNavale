@@ -52,6 +52,12 @@ public class GameHubService(IServiceProvider serviceProvider)
         Console.WriteLine("NotifyShipsChanged");
     }
     
+    public async Task NotifyIsTurnChanged(string playerId, bool isTurn)
+    {
+        string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
+        await Clients.Client(connectionId).SendAsync("NotifyIsTurnChanged", isTurn);
+    }
+    
     private GameData GetGameData(Game game)
     {
         return new GameData

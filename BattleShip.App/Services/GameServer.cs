@@ -14,7 +14,7 @@ public class GameServer(
     BattleshipService.BattleshipServiceClient grpcClient
 )
 {
-    private static readonly bool UsingGrpc = true;
+    private static readonly bool UsingGrpc = false;
 
     public async Task<Profile?> GetProfile()
     {
@@ -68,7 +68,18 @@ public class GameServer(
         }
         else
         {
-            // TODO: Implement HTTP version
+            var request = new HttpRequestMessage(HttpMethod.Post, "queue/join");
+                    await AddAuthorizationHeader(request);
+                    QueueSettings settings = new()
+                    {
+                        Type = queueType.ToString()
+                    };
+                    request.Content = JsonContent.Create(settings);
+                    var response = await http.SendAsync(request);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception("Failed to join queue");
+                    }
         }
     }
 
@@ -82,7 +93,13 @@ public class GameServer(
         }
         else
         {
-            // TODO: Implement HTTP version
+            var request = new HttpRequestMessage(HttpMethod.Post, "queue/leave");
+            await AddAuthorizationHeader(request);
+            var response = await http.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception("Failed to leave queue");
+            }
         }
     }
 

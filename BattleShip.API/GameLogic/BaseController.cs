@@ -42,14 +42,33 @@ public abstract class BaseController
         OpponentGrid = opponentGrid;
         IsReady = false;
         CanPlaceShips = false;
-        playerGrid.OnShipAdded += NotifyShipsChanged;
+        playerGrid.OnUpdate += NotifyPlayerUpdate;
+        opponentGrid.OnUpdate += NotifyOponentUpdate;
+    }
+    
+    protected void Attack(Coordinates coordinates)
+    {
+        if (!IsTurn)
+        {
+            return;
+        }
+        if (!OpponentGrid.CanAttack(coordinates))
+        {
+            return;
+        }
+        OpponentGrid.Attack(coordinates);
+        IsTurn = false;
     }
 
     public virtual void NotifyGameStateChanged(GameState state)
     {
     }
 
-    public virtual void NotifyShipsChanged()
+    public virtual void NotifyPlayerUpdate()
+    {
+    }
+    
+    public virtual void NotifyOponentUpdate()
     {
     }
 
@@ -96,8 +115,8 @@ public abstract class BaseController
         }
         return true;
     }
-    
-    public virtual void IsTurnChanged()
+
+    protected virtual void IsTurnChanged()
     {
     }
     

@@ -41,7 +41,7 @@
                     Rows="@_gameData.Settings.GridHeight"
                     Columns="@_gameData.Settings.GridWidth"
                     CellClicked="OnCellClickSelf"
-                    Ships="@_playerShips"/>
+                    Data="@_playerGrid"/>
             </div>
             <p class="player-name">Player 1</p>
         </div>
@@ -56,7 +56,7 @@
                     Rows="@_gameData.Settings.GridHeight"
                     Columns="@_gameData.Settings.GridWidth"
                     CellClicked="OnCellClickEnemy"
-                    Ships="_enemyShips"/>
+                    Data="@_opponentGrid"/>
             </div>
             <p class="player-name">Player 2</p>
         </div>
@@ -74,8 +74,8 @@
     private GameState _gameState = GameState.WaitingForPlayers;
     private bool _isPlayerTurn = false;
 
-    private List<ShipData> _playerShips = [];
-    private List<ShipData> _enemyShips = [];
+    private GridData _playerGrid = new();
+    private GridData _opponentGrid = new();
 
     protected override void OnInitialized()
     {
@@ -88,7 +88,7 @@
 
         _gameData = LocalGameReplication.GameData;
         LocalGameReplication.OnStateChanged += OnStateChanged;
-        LocalGameReplication.OnShipsChanged += OnShipsChanged;
+        LocalGameReplication.OnGridUpdate += OnGridUpdate;
         LocalGameReplication.OnTurnChanged += OnTurnChanged;
         Console.WriteLine($"Game started: {_gameData.Id} with grid size {_gameData.Settings.GridWidth}x{_gameData.Settings.GridHeight}");
         LocalGameReplication.SendReady();
@@ -97,13 +97,21 @@
     private void OnCellClickSelf((int x, int y) parameters)
     {
         var (x, y) = parameters;
-        Console.WriteLine($"Self clicked: {x}, {y}");
+        if (_gameState == GameState.PlacingShips)
+        {
+            Console.WriteLine($"Place ship: {x}, {y}");
+        }
     }
 
     private void OnCellClickEnemy((int x, int y) parameters)
     {
         var (x, y) = parameters;
-        Console.WriteLine($"Enemy clicked: {x}, {y}");
+        
+        if (_isPlayerTurn && _gameState == GameState.Playing)
+        {
+            Console.WriteLine($"Attack: {x}, {y}");
+            LocalGameReplication.Attack(new Coordinates(x, y));
+        }
     }
 
     private void OnStateChanged(GameState state)
@@ -113,9 +121,10 @@
         StateHasChanged();
     }
 
-    private void OnShipsChanged(List<ShipData> ships)
+    private void OnGridUpdate(GridData data)
     {
-        _playerShips = ships;
+        _playerGrid = LocalGameReplication.PlayerGrid;
+        _opponentGrid = LocalGameReplication.OpponentGrid;
         StateHasChanged();
     }
 

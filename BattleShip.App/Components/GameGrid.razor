@@ -16,6 +16,14 @@
                                 <img src="@tile.Image" alt="Ship" class="grid-sprite" 
                                      style="transform: rotate(@(tile.Rotation)deg) scaleY(@(tile.Mirrored ? -1 : 1))"/>
                             }
+                            @if (Data.HitCoordinates.Contains(new Coordinates(x, y)))
+                            {
+                                <img src="images/ships/hit.png" alt="Hit" class="grid-sprite"/>
+                            }
+                            @if (Data.MissCoordinates.Contains(new Coordinates(x, y)))
+                            {
+                                <img src="images/ships/miss.png" alt="Miss" class="grid-sprite"/>
+                            }
                         </div>
                     </td>
                 }
@@ -41,7 +49,7 @@
 
     [Parameter] public EventCallback<(int x, int y)> CellClicked { get; set; }
 
-    [Parameter] public List<ShipData> Ships { get; set; } = [];
+    [Parameter] public GridData Data { get; set; } = new();
 
     private class ShipTile
     {
@@ -67,9 +75,8 @@
     private void Redraw()
     {
         _shipTiles.Clear();
-        foreach (var ship in Ships)
+        foreach (var ship in Data.ShipData)
         {
-            Console.WriteLine($"Ship {ship.Length}");
             bool isVertical = ship.Direction is ShipDirection.Up or ShipDirection.Down;
             bool negate = ship.Direction is ShipDirection.Up or ShipDirection.Left;
             if (isVertical)
@@ -81,7 +88,7 @@
                         X = ship.Coordinates.X,
                         Y = ship.Coordinates.Y + i * (negate ? -1 : 1)
                     };
-                    string shipColor = "Yellow";
+                    string shipColor = Data.IsSelf ? "Yellow" : "Purple";
                     string shipPart = i == 0 ? "back" : (i == ship.Length - 1 ? "front" : "mid");
                     int rotation = negate ? 90 : 270;
                     _shipTiles[coordinates] = new ShipTile
@@ -101,7 +108,7 @@
                         X = ship.Coordinates.X + i * (negate ? -1 : 1),
                         Y = ship.Coordinates.Y
                     };
-                    string shipColor = "Yellow";
+                    string shipColor = Data.IsSelf ? "Yellow" : "Purple";
                     string shipPart = i == 0 ? "back" : (i == ship.Length - 1 ? "front" : "mid");
                     int rotation = negate ? 0 : 180;
                     _shipTiles[coordinates] = new ShipTile
@@ -113,6 +120,8 @@
                 }
             }
         }
+        
+        Console.WriteLine($"{Data.HitCoordinates.Count} hits and {Data.MissCoordinates.Count} misses");
 
         StateHasChanged();
     }

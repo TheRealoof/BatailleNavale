@@ -1,4 +1,6 @@
-﻿namespace BattleShip.API.GameLogic;
+﻿using BattleShip.Models;
+
+namespace BattleShip.API.GameLogic;
 
 public class PlayerControlManager
 {
@@ -25,6 +27,12 @@ public class PlayerControlManager
     {
         _playerControllers.TryGetValue(playerId, out PlayerController? playerController);
         return playerController;
+    }
+    
+    public void PlayerAttack(string playerId, Coordinates coordinates)
+    {
+        PlayerController? playerController = GetPlayerController(playerId);
+        playerController?.InputAttack(coordinates);
     }
     
 }

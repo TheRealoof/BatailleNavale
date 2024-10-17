@@ -22,18 +22,61 @@ public class PlayerController : BaseController
         _ = GameService.GameHub.NotifyGameStateChanged(Player.Id, state);
     }
 
-    public override void NotifyShipsChanged()
+    public override void NotifyPlayerUpdate()
     {
-        _ = GameService.GameHub.NotifyShipsChanged(Player.Id, PlayerGrid.Ships.Select(ship => new ShipData
+        GridData data = new GridData()
         {
-            Length = ship.Length,
-            Coordinates = ship.Coordinates,
-            Direction = ship.Direction
-        }).ToList());
+            IsSelf = true,
+            ShipData = PlayerGrid.Ships
+                .Select(ship => new ShipData
+                {
+                    Length = ship.Length,
+                    Coordinates = ship.Coordinates,
+                    Direction = ship.Direction
+                })
+                .ToList(),
+            HitCoordinates = PlayerGrid.AttackedCoordinates
+                .Where(PlayerGrid.IsShipPresent)
+                .ToList(),
+            MissCoordinates = PlayerGrid.AttackedCoordinates
+                .Where(coordinates => !PlayerGrid.IsShipPresent(coordinates))
+                .ToList()
+        };
+        _ = GameService.GameHub.NotifyUpdate(Player.Id, data);
     }
 
-    public override void IsTurnChanged()
+    public override void NotifyOponentUpdate()
+    {
+        GridData data = new GridData()
+        {
+            IsSelf = false,
+            ShipData = OpponentGrid.SunkenShips
+                .Where(ship => OpponentGrid.IsShipSunk(ship))
+                .Select(ship => new ShipData
+                {
+                    Length = ship.Length,
+                    Coordinates = ship.Coordinates,
+                    Direction = ship.Direction
+                })
+                .ToList(),
+            HitCoordinates = OpponentGrid.AttackedCoordinates
+                .Where(OpponentGrid.IsShipPresent)
+                .ToList(),
+            MissCoordinates = OpponentGrid.AttackedCoordinates
+                .Where(coordinates => !OpponentGrid.IsShipPresent(coordinates))
+                .ToList()
+        };
+        _ = GameService.GameHub.NotifyUpdate(Player.Id, data);
+    }
+
+    protected override void IsTurnChanged()
     {
         _ = GameService.GameHub.NotifyIsTurnChanged(Player.Id, IsTurn);
+    }
+
+    public void InputAttack(Coordinates coordinates)
+    {
+        Attack(coordinates);
+        Console.WriteLine($"Player {Player.Id} attacked {coordinates}");
     }
 }

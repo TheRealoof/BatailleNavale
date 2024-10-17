@@ -160,7 +160,6 @@ public class Game : IDisposable
 
     private void PlayerTurn(BaseController playerController)
     {
-        // handle player
         _currentPlayer = playerController;
         _currentPlayer.IsTurn = true;
         while (_isRunning && _currentPlayer.IsTurn)

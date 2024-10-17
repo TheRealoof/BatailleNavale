@@ -4,8 +4,6 @@ namespace BattleShip.API.GameLogic;
 
 public class Ship
 {
-    private bool Alive { get; set; } = true;
-
     public readonly Coordinates Coordinates;
 
     public readonly int Length;
@@ -22,7 +20,7 @@ public class Ship
         CoordinatesList = [];
         ComputeCoordinates();
     }
-    
+
     public void ComputeCoordinates()
     {
         bool vertical = Direction == ShipDirection.Down || Direction == ShipDirection.Up;
@@ -45,10 +43,9 @@ public class Ship
             }
         }
     }
-    
+
     public bool IsPresent(Coordinates coordinates)
     {
         return CoordinatesList.Any(c => c == coordinates);
     }
-    
 }

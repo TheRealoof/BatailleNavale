@@ -56,4 +56,12 @@ public class GameHub(GameService gameService) : Hub
         return Task.CompletedTask;
     }
     
+    public Task PlayerAttack(string gameId, Coordinates coordinates)
+    {
+        string connectionId = Context.ConnectionId;
+        Player player = gameService.SessionManager.GetPlayer(connectionId);
+        gameService.PlayerControlManager.PlayerAttack(player.Id, coordinates);
+        return Task.CompletedTask;
+    }
+    
 }

@@ -14,7 +14,7 @@ public class GameHub(IAccessTokenProvider tokenProvider)
     public event Action<GameData>? OnGameJoined;
     public event Action<GameData>? OnGameLeft;
     public event Action<GameState>? OnGameStateChanged;
-    public event Action<List<ShipData>>? OnShipsChanged; 
+    public event Action<GridData>? OnGridUpdate;
     public event Action<bool>? OnTurnChanged;
 
     private async Task BuildHubConnection()
@@ -119,9 +119,9 @@ public class GameHub(IAccessTokenProvider tokenProvider)
             OnGameStateChanged?.Invoke(state);
         });
         
-        HubConnection.On<List<ShipData>>("NotifyShipsChanged", ships =>
+        HubConnection.On<GridData>("NotifyUpdate", data =>
         {
-            OnShipsChanged?.Invoke(ships);
+            OnGridUpdate?.Invoke(data);
         });
         
         HubConnection.On<bool>("NotifyIsTurnChanged", isTurn =>
@@ -137,6 +137,15 @@ public class GameHub(IAccessTokenProvider tokenProvider)
             return;
         }
         HubConnection.SendAsync("PlayerReady", gameId);
+    }
+    
+    public void SendAttack(string gameId, Coordinates coordinates)
+    {
+        if (HubConnection is null)
+        {
+            return;
+        }
+        HubConnection.SendAsync("PlayerAttack", gameId, coordinates);
     }
     
 }

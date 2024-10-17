@@ -6,7 +6,8 @@ namespace BattleShip.App.Services;
 public class LocalGameReplication
 {
     public GameData? GameData { get; private set; }
-    public List<ShipData> Ships { get; private set; } = new();
+    public GridData PlayerGrid { get; private set; } = new();
+    public GridData OpponentGrid { get; private set; } = new();
     public bool IsTurn { get; private set; }
 
     private readonly NavigationManager _navigation;
@@ -15,7 +16,7 @@ public class LocalGameReplication
     public GameState State { get; private set; } = GameState.WaitingForPlayers;
     
     public event Action<GameState>? OnStateChanged;
-    public event Action<List<ShipData>>? OnShipsChanged; 
+    public event Action<GridData>? OnGridUpdate;
     public event Action<bool>? OnTurnChanged; 
 
     public LocalGameReplication(GameHub gameHub, NavigationManager navigation)
@@ -25,8 +26,13 @@ public class LocalGameReplication
         gameHub.OnGameJoined += OnGameJoined;
         gameHub.OnGameLeft += OnGameLeft;
         gameHub.OnGameStateChanged += OnStateChangedHandler;
-        gameHub.OnShipsChanged += OnShipsChangedHandler;
+        gameHub.OnGridUpdate += OnGridUpdatedHandler;
         gameHub.OnTurnChanged += OnTurnChangedHandler;
+    }
+
+    public void Attack(Coordinates coordinates)
+    {
+        _gameHub.SendAttack(GameData!.Id, coordinates);
     }
 
     private void OnGameJoined(GameData gameData)
@@ -56,10 +62,17 @@ public class LocalGameReplication
         OnStateChanged?.Invoke(state);
     }
     
-    private void OnShipsChangedHandler(List<ShipData> ships)
+    private void OnGridUpdatedHandler(GridData data)
     {
-        Ships = ships;
-        OnShipsChanged?.Invoke(ships);
+        if (data.IsSelf)
+        {
+            PlayerGrid = data;
+        }
+        else
+        {
+            OpponentGrid = data;
+        }
+        OnGridUpdate?.Invoke(data);
     }
     
     private void OnTurnChangedHandler(bool isTurn)

@@ -83,6 +83,7 @@ public class QueueManager : IDisposable
         Console.WriteLine($"QuickPlayQueue: {_quickPlayQueue.Count}");
         Console.WriteLine($"AgainstAIQueue: {_againstAIQueue.Count}");
         HandleAIQueue();
+        HandleQuickPlayQueue();
     }
 
     // ReSharper disable once InconsistentNaming
@@ -106,6 +107,33 @@ public class QueueManager : IDisposable
             game.Player2Controller = aiController;
             _gameService.GameManager.CreateGame(game);
             _ = _gameService.GameHub.NotifyGameJoined(player.Id, game);
+        }
+    }
+
+    private void HandleQuickPlayQueue()
+    {
+        while (_quickPlayQueue.Count >= 2)
+        {
+            Player player1 = _quickPlayQueue.First();
+            LeaveQueue(player1);
+            Player player2 = _quickPlayQueue.First();
+            LeaveQueue(player2);
+            GameSettings gameSettings = new GameSettings
+            {
+                GridWidth = 10,
+                GridHeight = 10,
+                ShipLengths = [5, 4, 3, 3, 2]
+            };
+            Game game = new Game(_gameService, gameSettings);
+            PlayerController player1Controller = new PlayerController(game, game.Player1Grid, game.Player2Grid, player1);
+            PlayerController player2Controller = new PlayerController(game, game.Player2Grid, game.Player1Grid, player2);
+            game.Player1Controller = player1Controller;
+            game.Player2Controller = player2Controller;
+            _gameService.PlayerControlManager.RegisterPlayerController(player1Controller);
+            _gameService.PlayerControlManager.RegisterPlayerController(player2Controller);
+            _gameService.GameManager.CreateGame(game);
+            _ = _gameService.GameHub.NotifyGameJoined(player1.Id, game);
+            _ = _gameService.GameHub.NotifyGameJoined(player2.Id, game);
         }
     }
 

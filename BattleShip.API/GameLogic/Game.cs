@@ -16,8 +16,6 @@ public class Game : IDisposable
     public BaseController Player1Controller { get; set; } = null!;
     public BaseController Player2Controller { get; set; } = null!;
 
-    private BaseController? _currentPlayer;
-
     public readonly PlayerGrid Player1Grid;
     public readonly PlayerGrid Player2Grid;
 
@@ -42,13 +40,9 @@ public class Game : IDisposable
         _isRunning = true;
         _gameThread.Start();
     }
-    
+
     public void Stop()
     {
-        if (_currentPlayer is not null)
-        {
-            // TODO cancel current player's turn
-        }
         _isRunning = false;
         _gameThread.Join();
     }
@@ -64,31 +58,31 @@ public class Game : IDisposable
         {
             throw new InvalidOperationException("Both players must be set before starting the game.");
         }
-        
+
         Player1Controller.CanPlaceShips = false;
         Player2Controller.CanPlaceShips = false;
         Player1Controller.IsTurn = false;
         Player2Controller.IsTurn = false;
-        
+
         State = GameState.WaitingForPlayers;
         NotifyStateChange();
         Console.WriteLine("Waiting for players to be ready...");
         WaitForPlayers();
-        
+
         if (!_isRunning) return;
 
         State = GameState.PlacingShips;
         NotifyStateChange();
         Console.WriteLine("Placing ships...");
         PlaceShips();
-        
+
         if (!_isRunning) return;
 
         State = GameState.Playing;
         NotifyStateChange();
         Console.WriteLine("Game started!");
         GameLogic();
-        
+
         if (!_isRunning) return;
 
         State = GameState.GameOver;
@@ -127,15 +121,17 @@ public class Game : IDisposable
 
             Thread.Sleep(100);
         }
+
         Player1Controller.CanPlaceShips = false;
         Player2Controller.CanPlaceShips = false;
-        
+
         // log player 1 ships
         Console.WriteLine("Player 1 ships:");
         foreach (Ship ship in Player1Grid.Ships)
         {
             Console.WriteLine($"Ship placed at {ship.Coordinates}, direction: {ship.Direction}, length: {ship.Length}");
         }
+
         Console.WriteLine("Player 2 ships:");
         foreach (Ship ship in Player2Grid.Ships)
         {
@@ -148,7 +144,27 @@ public class Game : IDisposable
         while (_isRunning)
         {
             PlayerTurn(Player1Controller);
+            CheckWin();
+            if (State == GameState.GameOver)
+            {
+                break;
+            }
+
             PlayerTurn(Player2Controller);
+            CheckWin();
+            if (State == GameState.GameOver)
+            {
+                break;
+            }
+        }
+    }
+
+    private void CheckWin()
+    {
+        if (Player1Grid.SunkenShips.Count == Player1Grid.Ships.Count ||
+            Player2Grid.SunkenShips.Count == Player2Grid.Ships.Count)
+        {
+            State = GameState.GameOver;
         }
     }
 
@@ -160,9 +176,8 @@ public class Game : IDisposable
 
     private void PlayerTurn(BaseController playerController)
     {
-        _currentPlayer = playerController;
-        _currentPlayer.IsTurn = true;
-        while (_isRunning && _currentPlayer.IsTurn)
+        playerController.IsTurn = true;
+        while (_isRunning && playerController.IsTurn)
         {
             Thread.Sleep(100);
         }

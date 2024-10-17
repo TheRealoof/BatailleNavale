@@ -9,15 +9,26 @@ public class AIController : BaseController
         opponentGrid)
     {
         IsReady = true;
+        OnIsTurnChanged += IsTurnChanged;
+        OnIsOpponentConnectedChanged += IsOpponentConnectedChanged;
     }
 
-    protected override void IsTurnChanged()
+    private void IsTurnChanged()
     {
         if (!IsTurn)
         {
             return;
         }
         Play();
+    }
+    
+    private void IsOpponentConnectedChanged()
+    {
+        // Auto disconnect if opponent is disconnected so that the game can end
+        if (!IsOpponentConnected)
+        {
+            IsConnected = false;
+        }
     }
 
     private void Play()

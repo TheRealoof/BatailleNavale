@@ -10,6 +10,30 @@ public abstract class BaseController
     public readonly PlayerGrid PlayerGrid;
     public readonly PlayerGrid OpponentGrid;
     public bool IsReady { get; protected set; }
+    
+    private bool _isConnected;
+    
+    public bool IsConnected
+    {
+        get => _isConnected;
+        set
+        {
+            _isConnected = value;
+            OnIsConnectedChanged?.Invoke();
+        }
+    }
+    
+    private bool _isOpponentConnected;
+    
+    public bool IsOpponentConnected
+    {
+        get => _isOpponentConnected;
+        set
+        {
+            _isOpponentConnected = value;
+            OnIsOpponentConnectedChanged?.Invoke();
+        }
+    }
 
     private bool _canPlaceShips;
 
@@ -19,7 +43,7 @@ public abstract class BaseController
         set
         {
             _canPlaceShips = value;
-            CanPlaceShipsChanged();
+            OnCanPlaceShipsChanged?.Invoke();
         }
     }
     
@@ -31,9 +55,14 @@ public abstract class BaseController
         set
         {
             _isTurn = value;
-            IsTurnChanged();
+            OnIsTurnChanged?.Invoke();
         }
     }
+    
+    public event Action? OnIsConnectedChanged;
+    public event Action? OnIsOpponentConnectedChanged;
+    public event Action? OnCanPlaceShipsChanged;
+    public event Action? OnIsTurnChanged;
 
     public BaseController(Game game, PlayerGrid playerGrid, PlayerGrid opponentGrid)
     {
@@ -41,9 +70,11 @@ public abstract class BaseController
         PlayerGrid = playerGrid;
         OpponentGrid = opponentGrid;
         IsReady = false;
+        IsConnected = true;
         CanPlaceShips = false;
         playerGrid.OnUpdate += NotifyPlayerUpdate;
-        opponentGrid.OnUpdate += NotifyOponentUpdate;
+        opponentGrid.OnUpdate += NotifyOpponentUpdate;
+        OnCanPlaceShipsChanged += CanPlaceShipsChanged;
     }
     
     protected void Attack(Coordinates coordinates)
@@ -68,11 +99,11 @@ public abstract class BaseController
     {
     }
     
-    public virtual void NotifyOponentUpdate()
+    public virtual void NotifyOpponentUpdate()
     {
     }
 
-    public virtual void CanPlaceShipsChanged()
+    public void CanPlaceShipsChanged()
     {
         if (!CanPlaceShips)
         {
@@ -114,10 +145,6 @@ public abstract class BaseController
             }
         }
         return true;
-    }
-
-    protected virtual void IsTurnChanged()
-    {
     }
     
 }

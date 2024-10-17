@@ -2,7 +2,8 @@
 
 public class QueueSettings
 {
-    public string Type { get; set; }
+    public string Type { get; init; } = "";
     
-    public int? AIDifficulty { get; set; }
+    // ReSharper disable once InconsistentNaming
+    public int? AIDifficulty { get; init; }
 }

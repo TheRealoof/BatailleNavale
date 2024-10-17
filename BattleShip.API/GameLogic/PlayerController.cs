@@ -10,6 +10,7 @@ public class PlayerController : BaseController
         playerGrid, opponentGrid)
     {
         Player = player;
+        OnIsTurnChanged += IsTurnChanged;
     }
 
     public void SetReady()
@@ -45,7 +46,7 @@ public class PlayerController : BaseController
         _ = GameService.GameHub.NotifyUpdate(Player.Id, data);
     }
 
-    public override void NotifyOponentUpdate()
+    public override void NotifyOpponentUpdate()
     {
         GridData data = new GridData()
         {
@@ -69,7 +70,7 @@ public class PlayerController : BaseController
         _ = GameService.GameHub.NotifyUpdate(Player.Id, data);
     }
 
-    protected override void IsTurnChanged()
+    private void IsTurnChanged()
     {
         _ = GameService.GameHub.NotifyIsTurnChanged(Player.Id, IsTurn);
     }

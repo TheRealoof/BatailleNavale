@@ -1,4 +1,5 @@
-﻿using BattleShip.Models;
+﻿using BattleShip.API.Services;
+using BattleShip.Models;
 
 namespace BattleShip.API.GameLogic;
 
@@ -6,6 +7,14 @@ public class PlayerControlManager
 {
     
     private readonly Dictionary<string, PlayerController> _playerControllers = new();
+    
+    public PlayerControlManager(GameService gameService)
+    {
+        gameService.SessionManager.OnPlayerDisconnected += player =>
+        {
+            PlayerLeave(player.Id);
+        };
+    }
     
     public void PlayerReady(string playerId)
     {
@@ -33,6 +42,16 @@ public class PlayerControlManager
     {
         PlayerController? playerController = GetPlayerController(playerId);
         playerController?.InputAttack(coordinates);
+    }
+    
+    public void PlayerLeave(string playerId)
+    {
+        PlayerController? playerController = GetPlayerController(playerId);
+        if (playerController is null)
+        {
+            return;
+        }
+        playerController.IsConnected = false;
     }
     
 }

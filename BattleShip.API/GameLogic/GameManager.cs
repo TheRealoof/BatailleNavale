@@ -17,6 +17,7 @@ public class GameManager : IDisposable
     public void CreateGame(Game game)
     {
         _lobbies.Add(game.Id, game);
+        game.OnStop += () => RemoveGame(game.Id.ToString());
         game.Start();
         Console.WriteLine($"Game created: {game.Id}");
     }
@@ -30,10 +31,7 @@ public class GameManager : IDisposable
     public void RemoveGame(string id)
     {
         _lobbies.Remove(Guid.Parse(id));
+        Console.WriteLine($"Removed game: {id}");
     }
-
-    public void PerformAttack(string gameId, string playerId, uint x, uint y)
-    {
-        Game? game = GetGame(gameId);
-    }
+    
 }

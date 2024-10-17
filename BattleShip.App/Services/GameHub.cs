@@ -132,20 +132,17 @@ public class GameHub(IAccessTokenProvider tokenProvider)
     
     public void SendReady(string gameId)
     {
-        if (HubConnection is null)
-        {
-            return;
-        }
-        HubConnection.SendAsync("PlayerReady", gameId);
+        HubConnection?.SendAsync("PlayerReady", gameId);
     }
     
     public void SendAttack(string gameId, Coordinates coordinates)
     {
-        if (HubConnection is null)
-        {
-            return;
-        }
-        HubConnection.SendAsync("PlayerAttack", gameId, coordinates);
+        HubConnection?.SendAsync("PlayerAttack", gameId, coordinates);
+    }
+
+    public void SendLeaveGame()
+    {
+        HubConnection?.SendAsync("LeaveGame");
     }
     
 }

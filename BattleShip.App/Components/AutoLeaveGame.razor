@@ -1,0 +1,12 @@
+﻿@using BattleShip.App.Services
+@inject GameHub GameHub
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        GameHub.SendLeaveGame();
+    }
+
+}

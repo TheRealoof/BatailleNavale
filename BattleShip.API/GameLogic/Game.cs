@@ -13,14 +13,34 @@ public class Game : IDisposable
 
     public GameState State { get; private set; }
 
-    public BaseController Player1Controller { get; set; } = null!;
-    public BaseController Player2Controller { get; set; } = null!;
+    private BaseController? _player1Controller;
+    public BaseController? Player1Controller
+    {
+        get => _player1Controller;
+        set
+        {
+            _player1Controller = value;
+            OnPlayer1Set();
+        }
+    }
+    private BaseController? _player2Controller;
+    public BaseController? Player2Controller
+    {
+        get => _player2Controller;
+        set
+        {
+            _player2Controller = value;
+            OnPlayer2Set();
+        }
+    }
 
     public readonly PlayerGrid Player1Grid;
     public readonly PlayerGrid Player2Grid;
 
     private bool _isRunning;
     private readonly Thread _gameThread;
+
+    public Action? OnStop;
 
     public Game(GameService gameService, GameSettings gameSettings)
     {
@@ -36,6 +56,7 @@ public class Game : IDisposable
 
     public void Start()
     {
+        if (_isRunning) return;
         State = GameState.WaitingForPlayers;
         _isRunning = true;
         _gameThread.Start();
@@ -43,8 +64,11 @@ public class Game : IDisposable
 
     public void Stop()
     {
+        Console.WriteLine("Game Stop");
+        if (!_isRunning) return;
         _isRunning = false;
         _gameThread.Join();
+        OnStop?.Invoke();
     }
 
     public void Dispose()
@@ -93,8 +117,8 @@ public class Game : IDisposable
     {
         while (_isRunning)
         {
-            bool player1Ready = Player1Controller.IsReady;
-            bool player2Ready = Player2Controller.IsReady;
+            bool player1Ready = Player1Controller!.IsReady;
+            bool player2Ready = Player2Controller!.IsReady;
 
             if (player1Ready && player2Ready)
             {
@@ -107,8 +131,8 @@ public class Game : IDisposable
 
     private void PlaceShips()
     {
-        Player1Controller.CanPlaceShips = true;
-        Player2Controller.CanPlaceShips = true;
+        Player1Controller!.CanPlaceShips = true;
+        Player2Controller!.CanPlaceShips = true;
         while (_isRunning)
         {
             bool player1Ready = Player1Grid.AllBoatsPlaced();
@@ -143,14 +167,14 @@ public class Game : IDisposable
     {
         while (_isRunning)
         {
-            PlayerTurn(Player1Controller);
+            PlayerTurn(Player1Controller!);
             CheckWin();
             if (State == GameState.GameOver)
             {
                 break;
             }
 
-            PlayerTurn(Player2Controller);
+            PlayerTurn(Player2Controller!);
             CheckWin();
             if (State == GameState.GameOver)
             {
@@ -170,8 +194,8 @@ public class Game : IDisposable
 
     private void NotifyStateChange()
     {
-        Player1Controller.NotifyGameStateChanged(State);
-        Player2Controller.NotifyGameStateChanged(State);
+        Player1Controller!.NotifyGameStateChanged(State);
+        Player2Controller!.NotifyGameStateChanged(State);
     }
 
     private void PlayerTurn(BaseController playerController)
@@ -182,4 +206,43 @@ public class Game : IDisposable
             Thread.Sleep(100);
         }
     }
+    
+    private void OnPlayer1Set()
+    {
+        Player1Controller!.OnIsConnectedChanged += IsPlayer1ConnectedChanged;
+    }
+    
+    private void OnPlayer2Set()
+    {
+        Player2Controller!.OnIsConnectedChanged += IsPlayer2ConnectedChanged;
+    }
+
+    private void IsPlayer1ConnectedChanged()
+    {
+        CheckDisconnect();
+        if (Player2Controller is not null)
+        {
+            Player2Controller.IsOpponentConnected = Player1Controller!.IsConnected;
+        }
+    }
+    
+    private void IsPlayer2ConnectedChanged()
+    {
+        CheckDisconnect();
+        if (Player1Controller is not null)
+        {
+            Player1Controller.IsOpponentConnected = Player2Controller!.IsConnected;
+        }
+    }
+
+    private void CheckDisconnect()
+    {
+        Console.WriteLine("Player disconnected");
+        if (!_isRunning) return;
+        if (!Player1Controller!.IsConnected && !Player2Controller!.IsConnected)
+        {
+            Stop();
+        }
+    }
+    
 }

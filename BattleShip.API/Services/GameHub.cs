@@ -63,5 +63,13 @@ public class GameHub(GameService gameService) : Hub
         gameService.PlayerControlManager.PlayerAttack(player.Id, coordinates);
         return Task.CompletedTask;
     }
+
+    public Task LeaveGame()
+    {
+        string connectionId = Context.ConnectionId;
+        Player player = gameService.SessionManager.GetPlayer(connectionId);
+        gameService.PlayerControlManager.PlayerLeave(player.Id);
+        return Task.CompletedTask;
+    }
     
 }

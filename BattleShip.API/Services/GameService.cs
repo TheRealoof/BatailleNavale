@@ -27,7 +27,7 @@ public class GameService : IDisposable
         SessionManager = new SessionManager();
         GameManager = new GameManager();
         QueueManager = new QueueManager(this);
-        PlayerControlManager = new PlayerControlManager();
+        PlayerControlManager = new PlayerControlManager(this);
     }
 
     public void Dispose()

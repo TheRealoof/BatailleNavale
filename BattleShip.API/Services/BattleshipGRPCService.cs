@@ -4,6 +4,7 @@ using BattleShip.Models;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Profile = BattleShip.API.Protos.Profile;
+using QueueSettings = BattleShip.Models.QueueSettings;
 
 namespace BattleShip.API.Services;
 
@@ -40,7 +41,7 @@ public class BattleshipGRPCService(AccountService accountService, GameService ga
     }
 
     [Authorize]
-    public override Task<Empty> JoinQueue(QueueSettings request, ServerCallContext context)
+    public override Task<Empty> JoinQueue(Protos.QueueSettings request, ServerCallContext context)
     {
         if (!Enum.TryParse(request.Type, out QueueType queueType))
         {
@@ -48,7 +49,11 @@ public class BattleshipGRPCService(AccountService accountService, GameService ga
         }
         
         Player player = gameService.PlayerDatabase.GetOrCreatePlayer(GetUserId(context));
-        gameService.QueueManager.JoinQueue(player, queueType);
+        gameService.QueueManager.JoinQueue(player, new QueueSettings
+        {
+            Type = queueType.ToString(),
+            AIDifficulty = null
+        });
         return Task.FromResult(new Empty());
     }
 

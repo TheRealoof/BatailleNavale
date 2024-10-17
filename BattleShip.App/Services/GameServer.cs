@@ -5,6 +5,7 @@ using BattleShip.Models;
 using Grpc.Core;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Profile = BattleShip.Models.Profile;
+using QueueSettings = BattleShip.API.Protos.QueueSettings;
 
 namespace BattleShip.App.Services;
 
@@ -54,7 +55,7 @@ public class GameServer(
         return null;
     }
 
-    public async void JoinQueue(QueueType queueType)
+    public async void JoinQueue(Models.QueueSettings queueSettings)
     {
         if (UsingGrpc)
         {
@@ -62,7 +63,7 @@ public class GameServer(
             await AddAuthorizationHeader(headers);
             QueueSettings settings = new()
             {
-                Type = queueType.ToString()
+                Type = queueSettings.Type
             };
             await grpcClient.JoinQueueAsync(settings, headers);
         }
@@ -70,11 +71,7 @@ public class GameServer(
         {
             var request = new HttpRequestMessage(HttpMethod.Post, "queue/join");
                     await AddAuthorizationHeader(request);
-                    QueueSettings settings = new()
-                    {
-                        Type = queueType.ToString()
-                    };
-                    request.Content = JsonContent.Create(settings);
+                    request.Content = JsonContent.Create(queueSettings);
                     var response = await http.SendAsync(request);
                     if (!response.IsSuccessStatusCode)
                     {

@@ -1,5 +1,7 @@
 using BattleShip.API.Services;
+using BattleShip.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +58,7 @@ builder.Services.AddSingleton<GameHubService>();
 builder.Services.AddSingleton<BattleshipHttpService>();
 builder.Services.AddSingleton<AccountService>();
 builder.Services.AddSingleton<GameService>();
+builder.Services.AddSingleton<IValidator<QueueSettings>, QueueSettingsValidator>();
 
 var app = builder.Build();
 

@@ -41,13 +41,20 @@
 
     private void PlayAgainstPlayer()
     {
-        GameServer.JoinQueue(QueueType.QuickPlay);
+        GameServer.JoinQueue(new QueueSettings
+        {
+            Type = QueueType.QuickPlay.ToString()
+        });
     }
     
     // ReSharper disable once InconsistentNaming
     private void PlayAgainstAI()
     {
-        GameServer.JoinQueue(QueueType.AgainstAI);
+        GameServer.JoinQueue(new QueueSettings
+        {
+            Type = QueueType.AgainstAI.ToString(),
+            AIDifficulty = 0
+        });
     }
     
 }

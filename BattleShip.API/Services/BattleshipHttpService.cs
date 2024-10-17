@@ -1,13 +1,12 @@
 ﻿using System.Security.Claims;
-using BattleShip.API.Protos;
 using BattleShip.Models;
-using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Profile = BattleShip.Models.Profile;
+using FluentValidation;
 
 namespace BattleShip.API.Services;
 
-public class BattleshipHttpService(AccountService accountService, GameService gameService)
+public class BattleshipHttpService(AccountService accountService, GameService gameService, IValidator<QueueSettings> validator)
 {
     
     public void RegisterRoutes(WebApplication app)
@@ -50,13 +49,19 @@ public class BattleshipHttpService(AccountService accountService, GameService ga
     public async Task<IResult> JoinQueue(HttpContext context)
     {
         QueueSettings? request = await context.Request.ReadFromJsonAsync<QueueSettings>();
-        if (!Enum.TryParse(request?.Type, out QueueType queueType))
+        if (request is null)
         {
-            return Results.BadRequest("Invalid queue type");
+            return Results.BadRequest("Invalid request");
+        }
+        var validationResult = await validator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            return Results.BadRequest(validationResult.Errors);
         }
         
+        
         Player player = gameService.PlayerDatabase.GetOrCreatePlayer(GetUserId(context));
-        gameService.QueueManager.JoinQueue(player, queueType);
+        gameService.QueueManager.JoinQueue(player, request);
         return Results.Ok();
     }
     

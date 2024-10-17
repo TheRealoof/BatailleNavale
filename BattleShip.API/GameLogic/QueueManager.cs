@@ -29,13 +29,14 @@ public class QueueManager : IDisposable
         _queueThread.Join();
     }
 
-    public void JoinQueue(Player player, QueueType queueType)
+    public void JoinQueue(Player player, QueueSettings queueSettings)
     {
         if (_quickPlayQueue.Contains(player) || _againstAIQueue.Contains(player))
         {
             return;
         }
 
+        Enum.TryParse(queueSettings.Type, out QueueType queueType);
         switch (queueType)
         {
             case QueueType.QuickPlay:
@@ -50,7 +51,7 @@ public class QueueManager : IDisposable
             }
         }
 
-        Console.WriteLine($"Player {player.Id} joined queue {queueType}");
+        Console.WriteLine($"Player {player.Id} joined queue {queueSettings.Type}");
         // send signalR message to client
         _ = _gameService.GameHub.NotifyJoinQueue(player.Id, queueType);
     }

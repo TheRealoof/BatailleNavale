@@ -9,6 +9,11 @@ public class AccountService
     
     private readonly Dictionary<string, Profile> _profiles = new();
     
+    public Profile? GetUserProfile(string id)
+    {
+        return _profiles.GetValueOrDefault(id);
+    }
+    
     public async Task<Profile> GetUserProfile(ClaimsPrincipal claims, string token)
     {
         if (_profiles.TryGetValue(token, out var foundProfile))
@@ -18,6 +23,11 @@ public class AccountService
         
         var nameIdentifier = claims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         Console.WriteLine("NameIdentifier: " + nameIdentifier);
+        
+        if (nameIdentifier == null)
+        {
+            throw new Exception();
+        }
 
         var httpClient = new HttpClient();
 
@@ -36,7 +46,7 @@ public class AccountService
             UserName = content["nickname"].ToString(),
             Picture = content["picture"].ToString()
         };
-        _profiles.Add(token, profile);
+        _profiles.Add(nameIdentifier, profile);
 
         return profile;
     }

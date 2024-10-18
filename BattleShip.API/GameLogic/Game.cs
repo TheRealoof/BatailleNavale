@@ -13,8 +13,8 @@ public class Game : IDisposable
 
     public GameState State { get; private set; }
 
-    private BaseController? _player1Controller;
-    public BaseController? Player1Controller
+    private BaseController _player1Controller = null!;
+    public BaseController Player1Controller
     {
         get => _player1Controller;
         set
@@ -23,8 +23,8 @@ public class Game : IDisposable
             OnPlayer1Set();
         }
     }
-    private BaseController? _player2Controller;
-    public BaseController? Player2Controller
+    private BaseController _player2Controller = null!;
+    public BaseController Player2Controller
     {
         get => _player2Controller;
         set
@@ -117,8 +117,8 @@ public class Game : IDisposable
     {
         while (_isRunning)
         {
-            bool player1Ready = Player1Controller!.IsReady;
-            bool player2Ready = Player2Controller!.IsReady;
+            bool player1Ready = Player1Controller.IsReady;
+            bool player2Ready = Player2Controller.IsReady;
 
             if (player1Ready && player2Ready)
             {
@@ -131,8 +131,8 @@ public class Game : IDisposable
 
     private void PlaceShips()
     {
-        Player1Controller!.CanPlaceShips = true;
-        Player2Controller!.CanPlaceShips = true;
+        Player1Controller.CanPlaceShips = true;
+        Player2Controller.CanPlaceShips = true;
         while (_isRunning)
         {
             bool player1Ready = Player1Grid.AllBoatsPlaced();
@@ -167,14 +167,14 @@ public class Game : IDisposable
     {
         while (_isRunning)
         {
-            PlayerTurn(Player1Controller!);
+            PlayerTurn(Player1Controller);
             CheckWin();
             if (State == GameState.GameOver)
             {
                 break;
             }
 
-            PlayerTurn(Player2Controller!);
+            PlayerTurn(Player2Controller);
             CheckWin();
             if (State == GameState.GameOver)
             {
@@ -194,8 +194,8 @@ public class Game : IDisposable
 
     private void NotifyStateChange()
     {
-        Player1Controller!.NotifyGameStateChanged(State);
-        Player2Controller!.NotifyGameStateChanged(State);
+        Player1Controller.GameStateChanged();
+        Player2Controller.GameStateChanged();
     }
 
     private void PlayerTurn(BaseController playerController)
@@ -209,29 +209,29 @@ public class Game : IDisposable
     
     private void OnPlayer1Set()
     {
-        Player1Controller!.OnIsConnectedChanged += IsPlayer1ConnectedChanged;
+        Player1Controller.OnIsConnectedChanged += IsPlayer1ConnectedChanged;
     }
     
     private void OnPlayer2Set()
     {
-        Player2Controller!.OnIsConnectedChanged += IsPlayer2ConnectedChanged;
+        Player2Controller.OnIsConnectedChanged += IsPlayer2ConnectedChanged;
     }
 
     private void IsPlayer1ConnectedChanged()
     {
         CheckDisconnect();
-        if (Player2Controller is not null)
+        if (Player2Controller != null!)
         {
-            Player2Controller.IsOpponentConnected = Player1Controller!.IsConnected;
+            Player2Controller.IsOpponentConnected = Player1Controller.IsConnected;
         }
     }
     
     private void IsPlayer2ConnectedChanged()
     {
         CheckDisconnect();
-        if (Player1Controller is not null)
+        if (Player1Controller != null!)
         {
-            Player1Controller.IsOpponentConnected = Player2Controller!.IsConnected;
+            Player1Controller.IsOpponentConnected = Player2Controller.IsConnected;
         }
     }
 
@@ -239,7 +239,7 @@ public class Game : IDisposable
     {
         Console.WriteLine("Player disconnected");
         if (!_isRunning) return;
-        if (!Player1Controller!.IsConnected && !Player2Controller!.IsConnected)
+        if (!Player1Controller.IsConnected && !Player2Controller.IsConnected)
         {
             Stop();
         }

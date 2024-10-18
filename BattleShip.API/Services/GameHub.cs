@@ -72,4 +72,12 @@ public class GameHub(GameService gameService) : Hub
         return Task.CompletedTask;
     }
     
+    public Task RefreshClient()
+    {
+        string connectionId = Context.ConnectionId;
+        Player player = gameService.SessionManager.GetPlayer(connectionId);
+        gameService.PlayerControlManager.PlayerRefresh(player.Id);
+        return Task.CompletedTask;
+    }
+    
 }

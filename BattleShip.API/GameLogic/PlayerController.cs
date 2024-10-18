@@ -1,4 +1,5 @@
-﻿using BattleShip.Models;
+﻿using BattleShip.API.Services;
+using BattleShip.Models;
 
 namespace BattleShip.API.GameLogic;
 
@@ -6,11 +7,24 @@ public class PlayerController : BaseController
 {
     public readonly Player Player;
 
+    private readonly string _name;
+    private readonly string? _picture;
+    
+    public override string Name => _name;
+    public override string? Picture => _picture;
+
     public PlayerController(Game game, PlayerGrid playerGrid, PlayerGrid opponentGrid, Player player) : base(game,
         playerGrid, opponentGrid)
     {
         Player = player;
+        OnGameStateChanged += NotifyGameStateChanged;
         OnIsTurnChanged += IsTurnChanged;
+        PlayerGrid.OnUpdate += NotifyPlayerGridUpdate;
+        OpponentGrid.OnUpdate += NotifyOpponentGridUpdate;
+        OnIsOpponentConnectedChanged += NotifyOpponentUpdate;
+        Profile? profile = GameService.ServiceProvider.GetRequiredService<AccountService>().GetUserProfile(Player.Id);
+        _name = profile?.UserName ?? "Player";
+        _picture = profile?.Picture;
     }
 
     public void SetReady()
@@ -18,12 +32,45 @@ public class PlayerController : BaseController
         IsReady = true;
     }
 
-    public override void NotifyGameStateChanged(GameState state)
+    private void NotifyGameStateChanged()
     {
-        _ = GameService.GameHub.NotifyGameStateChanged(Player.Id, state);
+        _ = GameService.GameHub.NotifyGameStateChanged(Player.Id, Game.State);
     }
 
-    public override void NotifyPlayerUpdate()
+    public void RefreshClient()
+    {
+        Console.WriteLine("PlayerController.RefreshClient");
+        NotifyPlayerUpdate();
+        NotifyOpponentUpdate();
+        NotifyPlayerGridUpdate();
+        NotifyOpponentGridUpdate();
+    }
+
+    private void NotifyPlayerUpdate()
+    {
+        PlayerData data = new PlayerData
+        {
+            IsSelf = true,
+            IsConnected = IsConnected,
+            Name = Name,
+            Picture = Picture
+        };
+        _ = GameService.GameHub.NotifyPlayerUpdate(Player.Id, data);
+    }
+
+    private void NotifyOpponentUpdate()
+    {
+        PlayerData data = new PlayerData
+        {
+            IsSelf = false,
+            IsConnected = Opponent.IsConnected,
+            Name = Opponent.Name,
+            Picture = Opponent.Picture
+        };
+        _ = GameService.GameHub.NotifyPlayerUpdate(Player.Id, data);
+    }
+
+    private void NotifyPlayerGridUpdate()
     {
         GridData data = new GridData()
         {
@@ -43,10 +90,10 @@ public class PlayerController : BaseController
                 .Where(coordinates => !PlayerGrid.IsShipPresent(coordinates))
                 .ToList()
         };
-        _ = GameService.GameHub.NotifyUpdate(Player.Id, data);
+        _ = GameService.GameHub.NotifyGridUpdate(Player.Id, data);
     }
 
-    public override void NotifyOpponentUpdate()
+    private void NotifyOpponentGridUpdate()
     {
         GridData data = new GridData()
         {
@@ -67,7 +114,7 @@ public class PlayerController : BaseController
                 .Where(coordinates => !OpponentGrid.IsShipPresent(coordinates))
                 .ToList()
         };
-        _ = GameService.GameHub.NotifyUpdate(Player.Id, data);
+        _ = GameService.GameHub.NotifyGridUpdate(Player.Id, data);
     }
 
     private void IsTurnChanged()

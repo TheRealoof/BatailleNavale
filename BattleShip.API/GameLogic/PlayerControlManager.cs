@@ -54,4 +54,10 @@ public class PlayerControlManager
         playerController.IsConnected = false;
     }
     
+    public void PlayerRefresh(string playerId)
+    {
+        PlayerController? playerController = GetPlayerController(playerId);
+        playerController?.RefreshClient();
+    }
+    
 }

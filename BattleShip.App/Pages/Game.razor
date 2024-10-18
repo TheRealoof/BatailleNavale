@@ -35,31 +35,36 @@
 
     <div id="game-view">
 
-        <div id="player1-view" class="player-view">
-            <div class="player-grid">
+        @if (_playerData.IsConnected)
+        {
+            <div id="player1-view" class="player-view">
                 <GameGrid
                     Rows="@_gameData.Settings.GridHeight"
                     Columns="@_gameData.Settings.GridWidth"
                     CellClicked="OnCellClickSelf"
                     Data="@_playerGrid"/>
+                <PlayerDataView Data="@_playerData"/>
             </div>
-            <p class="player-name">Player 1</p>
-        </div>
+        }
 
-        <div id="vs-graphics">
-            <p>VS</p>
-        </div>
+        @if (_playerData.IsConnected && _opponentData.IsConnected)
+        {
+            <div id="vs-graphics">
+                <p>VS</p>
+            </div>
+        }
 
-        <div id="player2-view" class="player-view">
-            <div class="player-grid">
+        @if (_opponentData.IsConnected)
+        {
+            <div id="player2-view" class="player-view">
                 <GameGrid
                     Rows="@_gameData.Settings.GridHeight"
                     Columns="@_gameData.Settings.GridWidth"
                     CellClicked="OnCellClickEnemy"
                     Data="@_opponentGrid"/>
+                <PlayerDataView Data="@_opponentData"/>
             </div>
-            <p class="player-name">Player 2</p>
-        </div>
+        }
 
     </div>
 
@@ -74,6 +79,8 @@
     private GameState _gameState = GameState.WaitingForPlayers;
     private bool _isPlayerTurn = false;
 
+    private PlayerData _playerData = new();
+    private PlayerData _opponentData = new();
     private GridData _playerGrid = new();
     private GridData _opponentGrid = new();
 
@@ -88,9 +95,11 @@
 
         _gameData = LocalGameReplication.GameData;
         LocalGameReplication.OnStateChanged += OnStateChanged;
+        LocalGameReplication.OnPlayerUpdate += OnPlayerUpdate;
         LocalGameReplication.OnGridUpdate += OnGridUpdate;
         LocalGameReplication.OnTurnChanged += OnTurnChanged;
         Console.WriteLine($"Game started: {_gameData.Id} with grid size {_gameData.Settings.GridWidth}x{_gameData.Settings.GridHeight}");
+        LocalGameReplication.Refresh();
         LocalGameReplication.SendReady();
     }
 
@@ -106,7 +115,7 @@
     private void OnCellClickEnemy((int x, int y) parameters)
     {
         var (x, y) = parameters;
-        
+
         if (_isPlayerTurn && _gameState == GameState.Playing)
         {
             Console.WriteLine($"Attack: {x}, {y}");
@@ -118,6 +127,14 @@
     {
         _gameState = state;
         Console.WriteLine($"Game state changed: {_gameState}");
+        StateHasChanged();
+    }
+
+    private void OnPlayerUpdate(PlayerData data)
+    {
+        Console.WriteLine("Player data updated");
+        _playerData = LocalGameReplication.PlayerData;
+        _opponentData = LocalGameReplication.OpponentData;
         StateHasChanged();
     }
 

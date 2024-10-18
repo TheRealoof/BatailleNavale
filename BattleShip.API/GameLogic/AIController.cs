@@ -46,4 +46,7 @@ public class AIController : BaseController
         }
     }
     
+    public override string Name => "AI";
+    public override string? Picture => null;
+    
 }

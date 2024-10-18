@@ -6,9 +6,9 @@ namespace BattleShip.API.Services;
 public class GameService : IDisposable
 {
 
-    public GameHubService GameHub => _serviceProvider.GetRequiredService<GameHubService>();
+    public GameHubService GameHub => ServiceProvider.GetRequiredService<GameHubService>();
     
-    private readonly IServiceProvider _serviceProvider;
+    public readonly IServiceProvider ServiceProvider;
     
     public readonly PlayerDatabase PlayerDatabase;
 
@@ -22,7 +22,7 @@ public class GameService : IDisposable
 
     public GameService(IServiceProvider serviceProvider)
     {
-        _serviceProvider = serviceProvider;
+        ServiceProvider = serviceProvider;
         PlayerDatabase = new PlayerDatabase();
         SessionManager = new SessionManager();
         GameManager = new GameManager();

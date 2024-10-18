@@ -1,0 +1,16 @@
+﻿@using BattleShip.Models
+
+<div id="player-data-view">
+    
+    
+    <img src="@(Data.Picture ?? "images/ui/default-picture.png")" alt="Player picture" id="player-picture"/>
+    
+    <p id="player-name">@Data.Name</p>
+    
+</div>
+
+@code {
+    
+    [Parameter] public PlayerData Data { get; set; } = new();
+    
+}

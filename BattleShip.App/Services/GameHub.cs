@@ -14,6 +14,7 @@ public class GameHub(IAccessTokenProvider tokenProvider)
     public event Action<GameData>? OnGameJoined;
     public event Action<GameData>? OnGameLeft;
     public event Action<GameState>? OnGameStateChanged;
+    public event Action<PlayerData>? OnPlayerUpdate;
     public event Action<GridData>? OnGridUpdate;
     public event Action<bool>? OnTurnChanged;
 
@@ -119,7 +120,12 @@ public class GameHub(IAccessTokenProvider tokenProvider)
             OnGameStateChanged?.Invoke(state);
         });
         
-        HubConnection.On<GridData>("NotifyUpdate", data =>
+        HubConnection.On<PlayerData>("NotifyPlayerUpdate", data =>
+        {
+            OnPlayerUpdate?.Invoke(data);
+        });
+        
+        HubConnection.On<GridData>("NotifyGridUpdate", data =>
         {
             OnGridUpdate?.Invoke(data);
         });
@@ -143,6 +149,11 @@ public class GameHub(IAccessTokenProvider tokenProvider)
     public void SendLeaveGame()
     {
         HubConnection?.SendAsync("LeaveGame");
+    }
+
+    public void SendRefreshRequest()
+    {
+        HubConnection?.SendAsync("RefreshClient");
     }
     
 }

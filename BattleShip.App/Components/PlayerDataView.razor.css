@@ -1,0 +1,23 @@
+﻿#player-data-view {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+    backdrop-filter: blur(5px);
+}
+
+#player-picture {
+    width: 50px;
+    height: 50px;
+    margin: 0;
+}
+
+#player-name {
+    font-size: 1.5em;
+    font-family: Impact, Charcoal, sans-serif;
+    margin: 0;
+    flex-grow: 1;
+}

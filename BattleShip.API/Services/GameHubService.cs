@@ -45,11 +45,17 @@ public class GameHubService(IServiceProvider serviceProvider)
         await Clients.Client(connectionId).SendAsync("NotifyGameStateChanged", gameState);
     }
     
-    public async Task NotifyUpdate(string playerId, GridData data)
+    public async Task NotifyPlayerUpdate(string playerId, PlayerData data)
     {
         string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
-        await Clients.Client(connectionId).SendAsync("NotifyUpdate", data);
-        Console.WriteLine("NotifyUpdate");
+        await Clients.Client(connectionId).SendAsync("NotifyPlayerUpdate", data);
+    }
+    
+    public async Task NotifyGridUpdate(string playerId, GridData data)
+    {
+        string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
+        await Clients.Client(connectionId).SendAsync("NotifyGridUpdate", data);
+        Console.WriteLine("NotifyGridUpdate");
     }
     
     public async Task NotifyIsTurnChanged(string playerId, bool isTurn)

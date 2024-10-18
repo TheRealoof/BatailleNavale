@@ -9,6 +9,7 @@ public abstract class BaseController
     public GameService GameService => Game.GameService;
     public readonly PlayerGrid PlayerGrid;
     public readonly PlayerGrid OpponentGrid;
+    public BaseController Opponent => Game.Player1Controller == this ? Game.Player2Controller : Game.Player1Controller;
     public bool IsReady { get; protected set; }
     
     private bool _isConnected;
@@ -59,6 +60,7 @@ public abstract class BaseController
         }
     }
     
+    public event Action? OnGameStateChanged;
     public event Action? OnIsConnectedChanged;
     public event Action? OnIsOpponentConnectedChanged;
     public event Action? OnCanPlaceShipsChanged;
@@ -72,8 +74,6 @@ public abstract class BaseController
         IsReady = false;
         IsConnected = true;
         CanPlaceShips = false;
-        playerGrid.OnUpdate += NotifyPlayerUpdate;
-        opponentGrid.OnUpdate += NotifyOpponentUpdate;
         OnCanPlaceShipsChanged += CanPlaceShipsChanged;
     }
     
@@ -90,20 +90,13 @@ public abstract class BaseController
         OpponentGrid.Attack(coordinates);
         IsTurn = false;
     }
-
-    public virtual void NotifyGameStateChanged(GameState state)
-    {
-    }
-
-    public virtual void NotifyPlayerUpdate()
-    {
-    }
     
-    public virtual void NotifyOpponentUpdate()
+    public void GameStateChanged()
     {
+        OnGameStateChanged?.Invoke();
     }
 
-    public void CanPlaceShipsChanged()
+    private void CanPlaceShipsChanged()
     {
         if (!CanPlaceShips)
         {
@@ -117,7 +110,7 @@ public abstract class BaseController
         }
     }
 
-    void GenerateShip(int length)
+    private void GenerateShip(int length)
     {
         while (true)
         {
@@ -146,5 +139,8 @@ public abstract class BaseController
         }
         return true;
     }
+    
+    public abstract string Name { get; }
+    public abstract string? Picture { get; }
     
 }

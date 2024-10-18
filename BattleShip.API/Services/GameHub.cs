@@ -61,6 +61,14 @@ public class GameHub(GameService gameService) : Hub
         return Task.CompletedTask;
     }
     
+    public Task PlayerPlaceShip(string gameId, ShipData shipData)
+    {
+        string connectionId = Context.ConnectionId;
+        Player player = gameService.SessionManager.GetPlayer(connectionId);
+        gameService.PlayerControlManager.PlayerPlaceShip(player.Id, shipData);
+        return Task.CompletedTask;
+    }
+    
     public Task PlayerAttack(string gameId, Coordinates coordinates)
     {
         string connectionId = Context.ConnectionId;

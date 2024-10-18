@@ -8,13 +8,22 @@
                 {
                     int x = col;
                     int y = row;
-                    <td class="grid-cell" @onclick="() => OnCellClick(x, y)">
+                    <td class="grid-cell"
+                        @onclick="() => OnCellClick(x, y)"
+                        @onmousedown="() => OnMouseDownCell(x, y)"
+                        @onmouseup="() => OnMouseUpCell(x, y)"
+                        @onmouseover="() => OnMouseOverCell(x, y)">
                         <div class="grid-cell-content">
                             @{ _shipTiles.TryGetValue(new Coordinates(x, y), out ShipTile? tile); }
                             @if (tile != null)
                             {
-                                <img src="@tile.Image" alt="Ship" class="grid-sprite" 
+                                <img src="@tile.Image" alt="Ship" class="grid-sprite"
                                      style="transform: rotate(@(tile.Rotation)deg) scaleY(@(tile.Mirrored ? -1 : 1))"/>
+                            }
+                            @if (_placementPreview.TryGetValue(new Coordinates(x, y), out ShipTile? previewTile))
+                            {
+                                <img src="@previewTile.Image" alt="Ship" class="grid-sprite"
+                                     style="transform: rotate(@(previewTile.Rotation)deg) scaleY(@(previewTile.Mirrored ? -1 : 1))"/>
                             }
                             @if (Data.HitCoordinates.Contains(new Coordinates(x, y)))
                             {
@@ -51,14 +60,25 @@
 
     [Parameter] public GridData Data { get; set; } = new();
 
+    [Parameter] public bool AllowPlaceShips { get; set; } = false;
+    
+    [Parameter] public EventCallback<ShipData> ShipPlacementRequested { get; set; }
+
     private class ShipTile
     {
+        public Coordinates Coordinates { get; set; } = new();
         public string Image { get; set; } = "";
         public int Rotation { get; set; } = 0;
         public bool Mirrored { get; set; } = false;
     }
 
     private Dictionary<Coordinates, ShipTile> _shipTiles = new();
+    
+    private bool _isPlacingShip = false;
+    
+    private Coordinates? _placementStart = new();
+    
+    private Dictionary<Coordinates, ShipTile> _placementPreview = new();
 
     protected override void OnInitialized()
     {
@@ -75,53 +95,129 @@
     private void Redraw()
     {
         _shipTiles.Clear();
-        foreach (var ship in Data.ShipData)
+        foreach (ShipData ship in Data.ShipData)
         {
-            bool isVertical = ship.Direction is ShipDirection.Up or ShipDirection.Down;
-            bool negate = ship.Direction is ShipDirection.Up or ShipDirection.Left;
-            if (isVertical)
+            foreach (ShipTile tile in GenerateShipTiles(ship))
             {
-                for (int i = 0; i < ship.Length; i++)
-                {
-                    Coordinates coordinates = new Coordinates
-                    {
-                        X = ship.Coordinates.X,
-                        Y = ship.Coordinates.Y + i * (negate ? -1 : 1)
-                    };
-                    string shipColor = Data.IsSelf ? "Yellow" : "Purple";
-                    string shipPart = i == 0 ? "back" : (i == ship.Length - 1 ? "front" : "mid");
-                    int rotation = negate ? 90 : 270;
-                    _shipTiles[coordinates] = new ShipTile
-                    {
-                        Image = $"images/ships/{shipColor}_{shipPart}.png",
-                        Rotation = rotation,
-                        Mirrored = !negate
-                    };
-                }
-            }
-            else
-            {
-                for (int i = 0; i < ship.Length; i++)
-                {
-                    Coordinates coordinates = new Coordinates
-                    {
-                        X = ship.Coordinates.X + i * (negate ? -1 : 1),
-                        Y = ship.Coordinates.Y
-                    };
-                    string shipColor = Data.IsSelf ? "Yellow" : "Purple";
-                    string shipPart = i == 0 ? "back" : (i == ship.Length - 1 ? "front" : "mid");
-                    int rotation = negate ? 0 : 180;
-                    _shipTiles[coordinates] = new ShipTile
-                    {
-                        Image = $"images/ships/{shipColor}_{shipPart}.png",
-                        Rotation = rotation,
-                        Mirrored = !negate
-                    };
-                }
+                _shipTiles.Add(tile.Coordinates, tile);
             }
         }
 
         StateHasChanged();
+    }
+    
+    private void OnMouseDownCell(int x, int y)
+    {
+        if (!AllowPlaceShips) return;
+        _isPlacingShip = true;
+        _placementStart = new Coordinates(x, y);
+        _placementPreview.Clear();
+    }
+    
+    private void OnMouseUpCell(int x, int y)
+    {
+        if (!_isPlacingShip) return;
+        Coordinates placementEnd = new Coordinates(x, y);
+        ShipData? ship = GetShipDataFromPlacement(_placementStart!, placementEnd);
+        if (ship is not null)
+        {
+            ShipPlacementRequested.InvokeAsync(ship);
+        }
+        _isPlacingShip = false;
+        _placementStart = null;
+        _placementPreview.Clear();
+    }
+    
+    private void OnMouseOverCell(int x, int y)
+    {
+        if (!_isPlacingShip) return;
+        _placementPreview.Clear();
+        Coordinates placementEnd = new Coordinates(x, y);
+        ShipData? ship = GetShipDataFromPlacement(_placementStart!, placementEnd);
+        if (ship == null)
+        {
+            return;
+        }
+        List<ShipTile> tiles = GenerateShipTiles(ship);
+        foreach (ShipTile tile in tiles)
+        {
+            _placementPreview.Add(tile.Coordinates, tile);
+        }
+    }
+
+    private List<ShipTile> GenerateShipTiles(ShipData ship)
+    {
+        List<ShipTile> tiles = new();
+        bool isVertical = ship.Direction is ShipDirection.Up or ShipDirection.Down;
+        bool negate = ship.Direction is ShipDirection.Up or ShipDirection.Left;
+        if (isVertical)
+        {
+            for (int i = 0; i < ship.Length; i++)
+            {
+                Coordinates coordinates = new Coordinates
+                {
+                    X = ship.Coordinates.X,
+                    Y = ship.Coordinates.Y + i * (negate ? -1 : 1)
+                };
+                string shipColor = Data.IsSelf ? "Yellow" : "Purple";
+                string shipPart = i == 0 ? "back" : (i == ship.Length - 1 ? "front" : "mid");
+                int rotation = negate ? 90 : 270;
+                ShipTile tile = new ShipTile
+                {
+                    Coordinates = coordinates,
+                    Image = $"images/ships/{shipColor}_{shipPart}.png",
+                    Rotation = rotation,
+                    Mirrored = !negate
+                };
+                tiles.Add(tile);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < ship.Length; i++)
+            {
+                Coordinates coordinates = new Coordinates
+                {
+                    X = ship.Coordinates.X + i * (negate ? -1 : 1),
+                    Y = ship.Coordinates.Y
+                };
+                string shipColor = Data.IsSelf ? "Yellow" : "Purple";
+                string shipPart = i == 0 ? "back" : (i == ship.Length - 1 ? "front" : "mid");
+                int rotation = negate ? 0 : 180;
+                ShipTile tile = new ShipTile
+                {
+                    Coordinates = coordinates,
+                    Image = $"images/ships/{shipColor}_{shipPart}.png",
+                    Rotation = rotation,
+                    Mirrored = !negate
+                };
+                tiles.Add(tile);
+            }
+        }
+        return tiles;
+    }
+
+    private ShipData? GetShipDataFromPlacement(Coordinates start, Coordinates end)
+    {
+        Coordinates delta = end - start;
+        if (delta.X != 0 && delta.Y != 0)
+        {
+            return null;
+        } 
+        int length = Math.Max(Math.Abs(delta.X), Math.Abs(delta.Y)) + 1;
+        if (length < 2)
+        {
+            return null;
+        }
+        ShipDirection direction = delta.X != 0 ? (delta.X > 0 ? ShipDirection.Right : ShipDirection.Left) :
+            (delta.Y > 0 ? ShipDirection.Down : ShipDirection.Up);
+        ShipData ship = new ShipData
+        {
+            Coordinates = _placementStart!,
+            Direction = direction,
+            Length = length
+        };
+        return ship;
     }
 
 }

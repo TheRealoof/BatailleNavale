@@ -26,18 +26,27 @@ public class PlayerGrid
     
     public void AddShip(Ship ship)
     {
+        if (!GetRemainingShipLengths().Contains(ship.Length))
+        {
+            return;
+        }
         _ships.Add(ship);
         OnUpdate?.Invoke();
     }
     
     public bool AllBoatsPlaced()
     {
-        HashSet<int> lengths = [..ShipLengths];
+        return GetRemainingShipLengths().Count == 0;
+    }
+    
+    private List<int> GetRemainingShipLengths()
+    {
+        List<int> lengths = [..ShipLengths];
         foreach (Ship ship in _ships)
         {
             lengths.Remove(ship.Length);
         }
-        return lengths.Count == 0;
+        return lengths;
     }
     
     public bool IsShipPresent(Coordinates coordinates)

@@ -12,9 +12,9 @@ public class Ship
 
     public readonly List<Coordinates> CoordinatesList;
 
-    public Ship(int positionX, int positionY, int length, ShipDirection direction)
+    public Ship(Coordinates coordinates, int length, ShipDirection direction)
     {
-        Coordinates = new Coordinates(positionX, positionY);
+        Coordinates = coordinates;
         Length = length;
         Direction = direction;
         CoordinatesList = [];

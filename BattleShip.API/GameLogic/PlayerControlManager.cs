@@ -38,6 +38,12 @@ public class PlayerControlManager
         return playerController;
     }
     
+    public void PlayerPlaceShip(string playerId, ShipData shipData)
+    {
+        PlayerController? playerController = GetPlayerController(playerId);
+        playerController?.InputPlaceShip(shipData);
+    }
+    
     public void PlayerAttack(string playerId, Coordinates coordinates)
     {
         PlayerController? playerController = GetPlayerController(playerId);

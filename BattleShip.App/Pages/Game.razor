@@ -18,7 +18,19 @@
                     break;
                 case GameState.PlacingShips:
                     status = "Place your ships";
-                    description = "Click on the grid to place your ships";
+                    List<int> remainingSizes = [.._gameData.Settings.ShipLengths];
+                    foreach (var ship in _playerGrid.ShipData)
+                    {
+                        remainingSizes.Remove(ship.Length);
+                    }
+                    if (remainingSizes.Count == 0)
+                    {
+                        description = "Waiting for opponent to place ships";
+                    }
+                    else
+                    {
+                        description = "Drag on the grid to place your ships (Remaining sizes: " + string.Join(", ", remainingSizes) + ")";
+                    }
                     break;
                 case GameState.Playing:
                     status = (_isPlayerTurn) ? "Your turn" : "Enemy's turn";
@@ -42,7 +54,9 @@
                     Rows="@_gameData.Settings.GridHeight"
                     Columns="@_gameData.Settings.GridWidth"
                     CellClicked="OnCellClickSelf"
-                    Data="@_playerGrid"/>
+                    Data="@_playerGrid"
+                    AllowPlaceShips="@(_gameState == GameState.PlacingShips)"
+                    ShipPlacementRequested="OnShipPlacementRequested"/>
                 <PlayerDataView Data="@_playerData"/>
             </div>
         }
@@ -61,7 +75,8 @@
                     Rows="@_gameData.Settings.GridHeight"
                     Columns="@_gameData.Settings.GridWidth"
                     CellClicked="OnCellClickEnemy"
-                    Data="@_opponentGrid"/>
+                    Data="@_opponentGrid"
+                    AllowPlaceShips="false"/>
                 <PlayerDataView Data="@_opponentData"/>
             </div>
         }
@@ -104,12 +119,7 @@
 
     private void OnCellClickSelf((int x, int y) parameters)
     {
-        var (x, y) = parameters;
-        if (_gameState == GameState.PlacingShips)
-        {
-            Console.WriteLine($"Place ship: {x}, {y}");
-            // TODO: Place ship
-        }
+        // Unused
     }
 
     private void OnCellClickEnemy((int x, int y) parameters)
@@ -120,6 +130,11 @@
         {
             LocalGameReplication.Attack(new Coordinates(x, y));
         }
+    }
+    
+    private void OnShipPlacementRequested(ShipData ship)
+    {
+        LocalGameReplication.PlaceShip(ship);
     }
 
     private void OnStateChanged(GameState state)

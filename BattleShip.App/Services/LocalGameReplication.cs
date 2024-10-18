@@ -33,6 +33,11 @@ public class LocalGameReplication
         gameHub.OnGridUpdate += OnGridUpdatedHandler;
         gameHub.OnTurnChanged += OnTurnChangedHandler;
     }
+    
+    public void PlaceShip(ShipData shipData)
+    {
+        _gameHub.SendPlaceShip(GameData!.Id, shipData);
+    }
 
     public void Attack(Coordinates coordinates)
     {

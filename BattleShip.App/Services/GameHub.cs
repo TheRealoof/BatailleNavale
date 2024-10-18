@@ -139,6 +139,11 @@ public class GameHub(IAccessTokenProvider tokenProvider)
         HubConnection?.SendAsync("PlayerReady", gameId);
     }
     
+    public void SendPlaceShip(string gameId, ShipData ship)
+    {
+        HubConnection?.SendAsync("PlayerPlaceShip", gameId, ship);
+    }
+    
     public void SendAttack(string gameId, Coordinates coordinates)
     {
         HubConnection?.SendAsync("PlayerAttack", gameId, coordinates);

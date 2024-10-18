@@ -6,27 +6,24 @@ namespace BattleShip.API.Services;
 
 public class AccountService
 {
-    
     private readonly Dictionary<string, Profile> _profiles = new();
-    
-    public Profile? GetUserProfile(string id)
+
+    private readonly Profile _defaultProfile = new()
     {
-        return _profiles.GetValueOrDefault(id);
+        UserName = "Guest",
+        Picture = null
+    };
+
+    public Profile GetUserProfile(string id)
+    {
+        return _profiles.GetValueOrDefault(id, _defaultProfile);
     }
-    
-    public async Task<Profile> GetUserProfile(ClaimsPrincipal claims, string token)
+
+    public async Task<Profile> GetUserProfile(string id, string token)
     {
-        if (_profiles.TryGetValue(token, out var foundProfile))
+        if (_profiles.TryGetValue(id, out var foundProfile))
         {
             return foundProfile;
-        }
-        
-        var nameIdentifier = claims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        Console.WriteLine("NameIdentifier: " + nameIdentifier);
-        
-        if (nameIdentifier == null)
-        {
-            throw new Exception();
         }
 
         var httpClient = new HttpClient();
@@ -36,21 +33,21 @@ public class AccountService
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new Exception();
+            return _defaultProfile;
         }
-        
+
         var content = (await response.Content.ReadFromJsonAsync<Dictionary<string, object>>())!;
-        
+
         Profile profile = new Profile
         {
             UserName = content["nickname"].ToString(),
             Picture = content["picture"].ToString()
         };
-        _profiles.Add(nameIdentifier, profile);
+        _profiles.Add(id, profile);
 
         return profile;
     }
-    
+
     public string? ExtractToken(HttpContext context)
     {
         string authHeader = context.Request.Headers["Authorization"].ToString();

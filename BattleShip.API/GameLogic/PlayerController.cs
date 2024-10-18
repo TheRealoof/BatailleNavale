@@ -22,9 +22,9 @@ public class PlayerController : BaseController
         PlayerGrid.OnUpdate += NotifyPlayerGridUpdate;
         OpponentGrid.OnUpdate += NotifyOpponentGridUpdate;
         OnIsOpponentConnectedChanged += NotifyOpponentUpdate;
-        Profile? profile = GameService.ServiceProvider.GetRequiredService<AccountService>().GetUserProfile(Player.Id);
-        _name = profile?.UserName ?? "Player";
-        _picture = profile?.Picture;
+        Profile profile = GameService.ServiceProvider.GetRequiredService<AccountService>().GetUserProfile(Player.Id);
+        _name = profile.UserName;
+        _picture = profile.Picture;
     }
 
     public void SetReady()

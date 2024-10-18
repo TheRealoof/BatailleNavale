@@ -15,7 +15,7 @@ public class BattleshipGRPCService(AccountService accountService, GameService ga
     [Authorize]
     public override async Task<Profile> GetProfile(Empty request, ServerCallContext context)
     {
-        ClaimsPrincipal claims = GetClaims(context);
+        string userId = GetUserId(context);
         string? token = GetToken(context);
 
         if (token is null)
@@ -26,7 +26,7 @@ public class BattleshipGRPCService(AccountService accountService, GameService ga
         Models.Profile profile;
         try
         {
-            profile = await accountService.GetUserProfile(claims, token);
+            profile = await accountService.GetUserProfile(userId, token);
         }
         catch (Exception)
         {

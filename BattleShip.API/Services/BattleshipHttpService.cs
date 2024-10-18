@@ -29,14 +29,14 @@ public class BattleshipHttpService(AccountService accountService, GameService ga
 
     private async Task<IResult> Profile(HttpContext context)
     {
-        ClaimsPrincipal user = context.User;
+        string userId = GetUserId(context);
         string? token = accountService.ExtractToken(context);
         if (token is null) return Results.Unauthorized();
 
         Profile profile;
         try
         {
-            profile = await accountService.GetUserProfile(user, token);
+            profile = await accountService.GetUserProfile(userId, token);
         }
         catch (Exception)
         {

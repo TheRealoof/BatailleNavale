@@ -2,6 +2,6 @@
 
 public class Profile
 {
-    public string? UserName { get; set; }
-    public string? Picture { get; set; }
+    public string UserName { get; init; } = String.Empty;
+    public string? Picture { get; init; }
 }

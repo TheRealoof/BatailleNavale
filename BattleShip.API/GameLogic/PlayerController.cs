@@ -121,6 +121,11 @@ public class PlayerController : BaseController
         _ = GameService.GameHub.NotifyIsTurnChanged(Player.Id, IsTurn);
     }
 
+    public void InputPlaceShip(ShipData shipData)
+    {
+        PlaceShip(new Ship(shipData.Coordinates, shipData.Length, shipData.Direction));
+    }
+    
     public void InputAttack(Coordinates coordinates)
     {
         Attack(coordinates);

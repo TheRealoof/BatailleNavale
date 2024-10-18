@@ -74,7 +74,15 @@ public abstract class BaseController
         IsReady = false;
         IsConnected = true;
         CanPlaceShips = false;
-        OnCanPlaceShipsChanged += CanPlaceShipsChanged;
+    }
+
+    protected void PlaceShip(Ship ship)
+    {
+        if (!CanPlaceShips)
+        {
+            return;
+        }
+        PlayerGrid.AddShip(ship);
     }
     
     protected void Attack(Coordinates coordinates)
@@ -94,49 +102,6 @@ public abstract class BaseController
     public void GameStateChanged()
     {
         OnGameStateChanged?.Invoke();
-    }
-
-    private void CanPlaceShipsChanged()
-    {
-        if (!CanPlaceShips)
-        {
-            return;
-        }
-
-        for (var i = 0; i < PlayerGrid.ShipLengths.Length; i++)
-        {
-            int length = PlayerGrid.ShipLengths[i];
-            GenerateShip(length);
-        }
-    }
-
-    private void GenerateShip(int length)
-    {
-        while (true)
-        {
-            int x = new Random().Next(0, Game.GameSettings.GridWidth);
-            int y = new Random().Next(0, Game.GameSettings.GridHeight);
-            ShipDirection direction = (ShipDirection)new Random().Next(0, 4);
-            Ship ship = new Ship(x, y, length, direction);
-            
-            if (IsShipValid(ship))
-            {
-                PlayerGrid.AddShip(ship);
-                break;
-            }
-        }
-    }
-    
-    private bool IsShipValid(Ship ship)
-    {
-        foreach (Coordinates coordinates in ship.CoordinatesList)
-        {
-            if (!PlayerGrid.IsInBounds(coordinates) || PlayerGrid.IsShipPresent(coordinates))
-            {
-                return false;
-            }
-        }
-        return true;
     }
     
     public abstract string Name { get; }

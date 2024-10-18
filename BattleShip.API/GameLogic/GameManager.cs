@@ -31,7 +31,7 @@ public class GameManager : IDisposable
     public void RemoveGame(string id)
     {
         _lobbies.Remove(Guid.Parse(id));
-        Console.WriteLine($"Removed game: {id}");
+        Console.WriteLine($"Game destroyed: {id}");
     }
     
 }

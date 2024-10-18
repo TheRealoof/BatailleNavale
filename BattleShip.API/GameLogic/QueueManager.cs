@@ -80,8 +80,6 @@ public class QueueManager : IDisposable
 
     private void HandleQueues()
     {
-        Console.WriteLine($"QuickPlayQueue: {_quickPlayQueue.Count}");
-        Console.WriteLine($"AgainstAIQueue: {_againstAIQueue.Count}");
         HandleAIQueue();
         HandleQuickPlayQueue();
     }
@@ -139,8 +137,6 @@ public class QueueManager : IDisposable
 
     private void OnPlayerDisconnected(Player player)
     {
-        Console.WriteLine($"Queue Manager: Player {player.Id} disconnected");
-        _quickPlayQueue.Remove(player);
-        _againstAIQueue.Remove(player);
+        LeaveQueue(player);
     }
 }

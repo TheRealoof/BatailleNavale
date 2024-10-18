@@ -114,7 +114,6 @@ public abstract class BaseController
     {
         while (true)
         {
-            Console.WriteLine("Attempting to place ship of length " + length);
             int x = new Random().Next(0, Game.GameSettings.GridWidth);
             int y = new Random().Next(0, Game.GameSettings.GridHeight);
             ShipDirection direction = (ShipDirection)new Random().Next(0, 4);

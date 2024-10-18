@@ -93,8 +93,6 @@ public class GameHub(IAccessTokenProvider tokenProvider)
             return;
         }
         
-        Console.WriteLine("Listening to messages");
-        
         HubConnection.On<QueueType>("NotifyJoinQueue", type =>
         {
             OnQueueJoined?.Invoke(type);

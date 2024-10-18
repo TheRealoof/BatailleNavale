@@ -20,14 +20,17 @@ public class GameHubService(IServiceProvider serviceProvider)
     
     public async Task NotifyLeaveQueue(string playerId)
     {
+        if (!GameService.SessionManager.IsPlayerConnected(playerId))
+        {
+            return;
+        }
         string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
         await Clients.Client(connectionId).SendAsync("NotifyLeaveQueue");
     }
     
     public async Task NotifyGameJoined(string playerId, Game game)
     {
-        Console.WriteLine($"NotifyGameJoined: {game.Id.ToString()}");
-        Models.GameData gameDataData = GetGameData(game);
+        GameData gameDataData = GetGameData(game);
         string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
         await Clients.Client(connectionId).SendAsync("NotifyGameJoined", gameDataData);
     }
@@ -55,7 +58,6 @@ public class GameHubService(IServiceProvider serviceProvider)
     {
         string connectionId = GameService.SessionManager.GetConnectionId(playerId)!;
         await Clients.Client(connectionId).SendAsync("NotifyGridUpdate", data);
-        Console.WriteLine("NotifyGridUpdate");
     }
     
     public async Task NotifyIsTurnChanged(string playerId, bool isTurn)

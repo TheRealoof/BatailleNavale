@@ -98,7 +98,6 @@
         LocalGameReplication.OnPlayerUpdate += OnPlayerUpdate;
         LocalGameReplication.OnGridUpdate += OnGridUpdate;
         LocalGameReplication.OnTurnChanged += OnTurnChanged;
-        Console.WriteLine($"Game started: {_gameData.Id} with grid size {_gameData.Settings.GridWidth}x{_gameData.Settings.GridHeight}");
         LocalGameReplication.Refresh();
         LocalGameReplication.SendReady();
     }
@@ -109,6 +108,7 @@
         if (_gameState == GameState.PlacingShips)
         {
             Console.WriteLine($"Place ship: {x}, {y}");
+            // TODO: Place ship
         }
     }
 
@@ -118,7 +118,6 @@
 
         if (_isPlayerTurn && _gameState == GameState.Playing)
         {
-            Console.WriteLine($"Attack: {x}, {y}");
             LocalGameReplication.Attack(new Coordinates(x, y));
         }
     }
@@ -126,13 +125,11 @@
     private void OnStateChanged(GameState state)
     {
         _gameState = state;
-        Console.WriteLine($"Game state changed: {_gameState}");
         StateHasChanged();
     }
 
     private void OnPlayerUpdate(PlayerData data)
     {
-        Console.WriteLine("Player data updated");
         _playerData = LocalGameReplication.PlayerData;
         _opponentData = LocalGameReplication.OpponentData;
         StateHasChanged();
@@ -148,7 +145,6 @@
     private void OnTurnChanged(bool isPlayerTurn)
     {
         _isPlayerTurn = isPlayerTurn;
-        Console.WriteLine($"Turn changed: {isPlayerTurn}");
         StateHasChanged();
     }
 

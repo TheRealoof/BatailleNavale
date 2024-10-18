@@ -64,7 +64,6 @@ public class Game : IDisposable
 
     public void Stop()
     {
-        Console.WriteLine("Game Stop");
         if (!_isRunning) return;
         _isRunning = false;
         _gameThread.Join();
@@ -90,21 +89,18 @@ public class Game : IDisposable
 
         State = GameState.WaitingForPlayers;
         NotifyStateChange();
-        Console.WriteLine("Waiting for players to be ready...");
         WaitForPlayers();
 
         if (!_isRunning) return;
 
         State = GameState.PlacingShips;
         NotifyStateChange();
-        Console.WriteLine("Placing ships...");
         PlaceShips();
 
         if (!_isRunning) return;
 
         State = GameState.Playing;
         NotifyStateChange();
-        Console.WriteLine("Game started!");
         GameLogic();
 
         if (!_isRunning) return;
@@ -148,19 +144,6 @@ public class Game : IDisposable
 
         Player1Controller.CanPlaceShips = false;
         Player2Controller.CanPlaceShips = false;
-
-        // log player 1 ships
-        Console.WriteLine("Player 1 ships:");
-        foreach (Ship ship in Player1Grid.Ships)
-        {
-            Console.WriteLine($"Ship placed at {ship.Coordinates}, direction: {ship.Direction}, length: {ship.Length}");
-        }
-
-        Console.WriteLine("Player 2 ships:");
-        foreach (Ship ship in Player2Grid.Ships)
-        {
-            Console.WriteLine($"Ship placed at {ship.Coordinates}, direction: {ship.Direction}, length: {ship.Length}");
-        }
     }
 
     private void GameLogic()
@@ -237,7 +220,6 @@ public class Game : IDisposable
 
     private void CheckDisconnect()
     {
-        Console.WriteLine("Player disconnected");
         if (!_isRunning) return;
         if (!Player1Controller.IsConnected && !Player2Controller.IsConnected)
         {

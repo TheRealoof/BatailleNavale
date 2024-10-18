@@ -69,7 +69,6 @@ public class PlayerGrid
             return;
         }
         _attackedCoordinates.Add(coordinates);
-        Console.WriteLine("Player attacked " + coordinates);
         OnUpdate?.Invoke();
     }
     

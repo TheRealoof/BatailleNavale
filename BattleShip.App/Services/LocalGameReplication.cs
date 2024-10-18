@@ -48,10 +48,6 @@ public class LocalGameReplication
     private void OnGameLeft(GameData gameData)
     {
         GameData = null;
-        // check if the player is in the game (/game)
-        // if so, navigate to the menu
-        string currentUri = _navigation.Uri;
-        Console.WriteLine("Current URI: " + currentUri);
         _navigation.NavigateTo("/menu");
     }
 

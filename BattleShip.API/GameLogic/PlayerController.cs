@@ -39,7 +39,6 @@ public class PlayerController : BaseController
 
     public void RefreshClient()
     {
-        Console.WriteLine("PlayerController.RefreshClient");
         NotifyPlayerUpdate();
         NotifyOpponentUpdate();
         NotifyPlayerGridUpdate();
@@ -125,6 +124,5 @@ public class PlayerController : BaseController
     public void InputAttack(Coordinates coordinates)
     {
         Attack(coordinates);
-        Console.WriteLine($"Player {Player.Id} attacked {coordinates}");
     }
 }

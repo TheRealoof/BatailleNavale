@@ -18,9 +18,13 @@ public class SessionManager
 
     public void PlayerDisconnected(string connectionId)
     {
-        Console.WriteLine($"Player disconnected: {_sessions[connectionId].Id}");
-        OnPlayerDisconnected?.Invoke(_sessions[connectionId]);
-        _connectionIds.Remove(_sessions[connectionId].Id);
+        if (!_sessions.TryGetValue(connectionId, out Player? player))
+        {
+            return;
+        }
+        Console.WriteLine($"Player disconnected: {player.Id}");
+        OnPlayerDisconnected?.Invoke(player);
+        _connectionIds.Remove(player.Id);
         _sessions.Remove(connectionId);
     }
     
@@ -32,6 +36,11 @@ public class SessionManager
     public Player GetPlayer(string connectionId)
     {
         return _sessions[connectionId];
+    }
+    
+    public bool IsPlayerConnected(string playerId)
+    {
+        return _connectionIds.ContainsKey(playerId);
     }
 
     public List<Player> GetConnectedPlayers()

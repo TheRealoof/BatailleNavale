@@ -20,6 +20,7 @@ public class GameHub(GameService gameService) : Hub
         Claim? nameIdentifier = claims?.FindFirst(ClaimTypes.NameIdentifier);
         if (nameIdentifier is null)
         {
+            Context.Abort();
             return;
         }
 
@@ -27,6 +28,11 @@ public class GameHub(GameService gameService) : Hub
         string playerId = nameIdentifier.Value;
 
         Player player = gameService.PlayerDatabase.GetOrCreatePlayer(playerId);
+        if (gameService.SessionManager.IsPlayerConnected(playerId))
+        {
+            Context.Abort();
+            return;
+        }
         gameService.SessionManager.PlayerConnected(connectionId, player);
 
         await base.OnConnectedAsync();
@@ -36,7 +42,6 @@ public class GameHub(GameService gameService) : Hub
     {
         string connectionId = Context.ConnectionId;
         gameService.SessionManager.PlayerDisconnected(connectionId);
-
         await base.OnDisconnectedAsync(exception);
     }
     

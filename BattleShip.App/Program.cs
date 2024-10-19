@@ -13,13 +13,11 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 
 builder.Services.AddHttpClient("ServerAPI",
-        client => client.BaseAddress = new Uri("https://localhost:5001"))
+        client => client.BaseAddress = new Uri(builder.Configuration["ApiUrl"]!))
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>()
     .CreateClient("ServerAPI"));
-
-//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:5001") });
 
 builder.Services.AddOidcAuthentication(options =>
 {
@@ -32,7 +30,7 @@ builder.Services.AddOidcAuthentication(options =>
 builder.Services.AddScoped(sp =>
 {
     var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()));
-    var channel = GrpcChannel.ForAddress("https://localhost:5001", new GrpcChannelOptions { HttpClient = httpClient });
+    var channel = GrpcChannel.ForAddress(builder.Configuration["ApiUrl"]!, new GrpcChannelOptions { HttpClient = httpClient });
     return new BattleshipService.BattleshipServiceClient(channel);
 });
 

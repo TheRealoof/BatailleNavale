@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 
 namespace BattleShip.App.Services;
 
-public class GameHub(IAccessTokenProvider tokenProvider)
+public class GameHub(IConfiguration configuration, IAccessTokenProvider tokenProvider)
 {
     public HubConnection? HubConnection { get; private set; }
     
@@ -27,7 +27,7 @@ public class GameHub(IAccessTokenProvider tokenProvider)
             return;
         }
         HubConnection = new HubConnectionBuilder()
-            .WithUrl(new Uri("https://localhost:5001/gamehub"), options =>
+            .WithUrl(new Uri($"{configuration["ApiUrl"]!}/gamehub"), options =>
             {
                 options.AccessTokenProvider = () => Task.FromResult(accessToken.Value)!;
             })

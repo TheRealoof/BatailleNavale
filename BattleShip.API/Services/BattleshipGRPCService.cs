@@ -52,7 +52,7 @@ public class BattleshipGRPCService(AccountService accountService, GameService ga
         gameService.QueueManager.JoinQueue(player, new QueueSettings
         {
             Type = queueType.ToString(),
-            AIDifficulty = null
+            AIDifficulty = request.AiDifficulty
         });
         return Task.FromResult(new Empty());
     }

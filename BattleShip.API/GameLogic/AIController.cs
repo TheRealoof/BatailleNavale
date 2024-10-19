@@ -5,13 +5,22 @@ namespace BattleShip.API.GameLogic;
 // ReSharper disable once InconsistentNaming
 public class AIController : BaseController
 {
-    
     public override string Name => "AI";
     public override string? Picture => null;
-    
-    public AIController(Game game, PlayerGrid playerGrid, PlayerGrid opponentGrid) : base(game, playerGrid,
-        opponentGrid)
+
+    public readonly AIDifficulty Difficulty;
+
+    // ReSharper disable once InconsistentNaming
+    public enum AIDifficulty
     {
+        Easy = 0,
+        Hard = 1
+    }
+
+    public AIController(Game game, PlayerGrid playerGrid, PlayerGrid opponentGrid, AIDifficulty aiDifficulty)
+        : base(game, playerGrid, opponentGrid)
+    {
+        Difficulty = aiDifficulty;
         IsReady = true;
         OnCanPlaceShipsChanged += CanPlaceShipsChanged;
         OnIsTurnChanged += IsTurnChanged;
@@ -24,9 +33,10 @@ public class AIController : BaseController
         {
             return;
         }
+
         Play();
     }
-    
+
     private void IsOpponentConnectedChanged()
     {
         // Auto disconnect if opponent is disconnected so that the game can end
@@ -35,7 +45,7 @@ public class AIController : BaseController
             IsConnected = false;
         }
     }
-    
+
     private void CanPlaceShipsChanged()
     {
         if (!CanPlaceShips)
@@ -61,7 +71,7 @@ public class AIController : BaseController
             };
             ShipDirection direction = (ShipDirection)new Random().Next(0, 4);
             Ship ship = new Ship(coordinates, length, direction);
-            
+
             if (IsShipValid(ship))
             {
                 PlaceShip(ship);
@@ -69,7 +79,7 @@ public class AIController : BaseController
             }
         }
     }
-    
+
     private bool IsShipValid(Ship ship)
     {
         foreach (Coordinates coordinates in ship.CoordinatesList)
@@ -79,10 +89,24 @@ public class AIController : BaseController
                 return false;
             }
         }
+
         return true;
     }
 
     private void Play()
+    {
+        switch (Difficulty)
+        {
+            case AIDifficulty.Easy:
+                PlayEasy();
+                break;
+            case AIDifficulty.Hard:
+                PlayHard();
+                break;
+        }
+    }
+
+    private void AttackRandom()
     {
         while (true)
         {
@@ -96,5 +120,45 @@ public class AIController : BaseController
             break;
         }
     }
-    
+
+    private void PlayEasy()
+    {
+        AttackRandom();
+    }
+
+    private void PlayHard()
+    {
+        List<Coordinates> currentTargets = [..OpponentGrid.AttackedCoordinates.Where(OpponentGrid.IsShipPresent)];
+        foreach (Ship ship in OpponentGrid.SunkenShips)
+        {
+            foreach (Coordinates coordinates in ship.CoordinatesList)
+            {
+                currentTargets.Remove(coordinates); // Don't target sunken ships
+            }
+        }
+
+        if (currentTargets.Count == 0)
+        {
+            AttackRandom();
+            return;
+        }
+
+        Coordinates[] directions =
+        [
+            new() { X = 1, Y = 0 },
+            new() { X = -1, Y = 0 },
+            new() { X = 0, Y = 1 },
+            new() { X = 0, Y = -1 }
+        ];
+        while (true)
+        {
+            Coordinates target = currentTargets[new Random().Next(0, currentTargets.Count)];
+            Coordinates direction = directions[new Random().Next(0, directions.Length)];
+            Coordinates coordinates = target + direction;
+            if (!OpponentGrid.CanAttack(coordinates)) continue;
+            Attack(coordinates);
+            break;
+        }
+    }
+
 }

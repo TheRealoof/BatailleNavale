@@ -46,7 +46,7 @@ public class BattleshipHttpService(AccountService accountService, GameService ga
         return Results.Ok(profile);
     }
     
-    public async Task<IResult> JoinQueue(HttpContext context)
+    private async Task<IResult> JoinQueue(HttpContext context)
     {
         QueueSettings? request = await context.Request.ReadFromJsonAsync<QueueSettings>();
         if (request is null)
@@ -65,11 +65,11 @@ public class BattleshipHttpService(AccountService accountService, GameService ga
         return Results.Ok();
     }
     
-    public async Task<IResult> LeaveQueue(HttpContext context)
+    private Task<IResult> LeaveQueue(HttpContext context)
     {
         Player player = gameService.PlayerDatabase.GetOrCreatePlayer(GetUserId(context));
         gameService.QueueManager.LeaveQueue(player);
-        return Results.Ok();
+        return Task.FromResult(Results.Ok());
     }
     
     private ClaimsPrincipal GetClaims(HttpContext context)

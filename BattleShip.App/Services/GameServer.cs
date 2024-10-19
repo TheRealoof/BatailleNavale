@@ -41,6 +41,7 @@ public class GameServer(
                 {
                     throw new Exception("Failed to get profile");
                 }
+
                 return await response.Content.ReadFromJsonAsync<Profile>();
             }
         }
@@ -52,6 +53,7 @@ public class GameServer(
         {
             Console.WriteLine(exception);
         }
+
         return null;
     }
 
@@ -63,20 +65,21 @@ public class GameServer(
             await AddAuthorizationHeader(headers);
             QueueSettings settings = new()
             {
-                Type = queueSettings.Type
+                Type = queueSettings.Type,
+                AiDifficulty = queueSettings.AIDifficulty
             };
             await grpcClient.JoinQueueAsync(settings, headers);
         }
         else
         {
             var request = new HttpRequestMessage(HttpMethod.Post, "queue/join");
-                    await AddAuthorizationHeader(request);
-                    request.Content = JsonContent.Create(queueSettings);
-                    var response = await http.SendAsync(request);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        throw new Exception("Failed to join queue");
-                    }
+            await AddAuthorizationHeader(request);
+            request.Content = JsonContent.Create(queueSettings);
+            var response = await http.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception("Failed to join queue");
+            }
         }
     }
 

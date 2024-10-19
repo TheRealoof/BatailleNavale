@@ -68,7 +68,7 @@ public class PlayerGrid
     
     public bool CanAttack(Coordinates coordinates)
     {
-        return !AttackedCoordinates.Contains(coordinates);
+        return !AttackedCoordinates.Contains(coordinates) && IsInBounds(coordinates);
     }
 
     public void Attack(Coordinates coordinates)

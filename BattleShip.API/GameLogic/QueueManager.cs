@@ -5,19 +5,22 @@ namespace BattleShip.API.GameLogic;
 
 public class QueueManager : IDisposable
 {
-    private readonly GameService _gameService;
+    public readonly GameService GameService;
 
-    private readonly HashSet<Player> _quickPlayQueue = new();
+    private readonly QuickPlayQueue _quickPlayQueue;
+
     // ReSharper disable once InconsistentNaming
-    private readonly HashSet<Player> _againstAIQueue = new();
+    private readonly AIQueue _againstAiQueue;
 
     private bool _isRunning;
     private readonly Thread _queueThread;
 
     public QueueManager(GameService gameService)
     {
-        _gameService = gameService;
-        _gameService.SessionManager.OnPlayerDisconnected += OnPlayerDisconnected;
+        GameService = gameService;
+        _quickPlayQueue = new QuickPlayQueue(this);
+        _againstAiQueue = new AIQueue(this);
+        GameService.SessionManager.OnPlayerDisconnected += OnPlayerDisconnected;
         _isRunning = true;
         _queueThread = new Thread(RunQueueThread);
         _queueThread.Start();
@@ -31,7 +34,7 @@ public class QueueManager : IDisposable
 
     public void JoinQueue(Player player, QueueSettings queueSettings)
     {
-        if (_quickPlayQueue.Contains(player) || _againstAIQueue.Contains(player))
+        if (_quickPlayQueue.Contains(player) || _againstAiQueue.Contains(player))
         {
             return;
         }
@@ -41,32 +44,26 @@ public class QueueManager : IDisposable
         {
             case QueueType.QuickPlay:
             {
-                _quickPlayQueue.Add(player);
+                _quickPlayQueue.Add(player, null);
                 break;
             }
             case QueueType.AgainstAI:
             {
-                _againstAIQueue.Add(player);
+                int difficulty = queueSettings.AIDifficulty ?? 1;
+                _againstAiQueue.Add(player, new AIQueue.AIQueueSettings
+                {
+                    Difficulty = difficulty
+                });
                 break;
             }
         }
-
-        Console.WriteLine($"Player {player.Id} joined queue {queueSettings.Type}");
-        // send signalR message to client
-        _ = _gameService.GameHub.NotifyJoinQueue(player.Id, queueType);
     }
 
     // leave queue
     public void LeaveQueue(Player player)
     {
-        if (
-            !_quickPlayQueue.Remove(player) &&
-            !_againstAIQueue.Remove(player)
-        ) return;
-        
-        Console.WriteLine($"Player {player.Id} left queue");
-        // send signalR message to client
-        _ = _gameService.GameHub.NotifyLeaveQueue(player.Id);
+        _quickPlayQueue.Remove(player);
+        _againstAiQueue.Remove(player);
     }
 
     private void RunQueueThread()
@@ -80,59 +77,8 @@ public class QueueManager : IDisposable
 
     private void HandleQueues()
     {
-        HandleAIQueue();
-        HandleQuickPlayQueue();
-    }
-
-    // ReSharper disable once InconsistentNaming
-    private void HandleAIQueue()
-    {
-        while (_againstAIQueue.Count > 0)
-        {
-            Player player = _againstAIQueue.First();
-            LeaveQueue(player);
-            GameSettings gameSettings = new GameSettings
-            {
-                GridWidth = 10,
-                GridHeight = 10,
-                ShipLengths = [5, 4, 3, 3, 2]
-            };
-            Game game = new Game(_gameService, gameSettings);
-            PlayerController playerController = new PlayerController(game, game.Player1Grid, game.Player2Grid, player);
-            _gameService.PlayerControlManager.RegisterPlayerController(playerController);
-            AIController aiController = new AIController(game, game.Player2Grid, game.Player1Grid);
-            game.Player1Controller = playerController;
-            game.Player2Controller = aiController;
-            _gameService.GameManager.CreateGame(game);
-            _ = _gameService.GameHub.NotifyGameJoined(player.Id, game);
-        }
-    }
-
-    private void HandleQuickPlayQueue()
-    {
-        while (_quickPlayQueue.Count >= 2)
-        {
-            Player player1 = _quickPlayQueue.First();
-            LeaveQueue(player1);
-            Player player2 = _quickPlayQueue.First();
-            LeaveQueue(player2);
-            GameSettings gameSettings = new GameSettings
-            {
-                GridWidth = 10,
-                GridHeight = 10,
-                ShipLengths = [5, 4, 3, 3, 2]
-            };
-            Game game = new Game(_gameService, gameSettings);
-            PlayerController player1Controller = new PlayerController(game, game.Player1Grid, game.Player2Grid, player1);
-            PlayerController player2Controller = new PlayerController(game, game.Player2Grid, game.Player1Grid, player2);
-            game.Player1Controller = player1Controller;
-            game.Player2Controller = player2Controller;
-            _gameService.PlayerControlManager.RegisterPlayerController(player1Controller);
-            _gameService.PlayerControlManager.RegisterPlayerController(player2Controller);
-            _gameService.GameManager.CreateGame(game);
-            _ = _gameService.GameHub.NotifyGameJoined(player1.Id, game);
-            _ = _gameService.GameHub.NotifyGameJoined(player2.Id, game);
-        }
+        _againstAiQueue.TryMatchPlayers();
+        _quickPlayQueue.TryMatchPlayers();
     }
 
     private void OnPlayerDisconnected(Player player)

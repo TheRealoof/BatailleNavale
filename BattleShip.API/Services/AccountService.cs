@@ -40,8 +40,8 @@ public class AccountService
 
         Profile profile = new Profile
         {
-            UserName = content["nickname"].ToString(),
-            Picture = content["picture"].ToString()
+            UserName = content["nickname"].ToString()!,
+            Picture = content["picture"].ToString()!
         };
         _profiles.Add(id, profile);
 

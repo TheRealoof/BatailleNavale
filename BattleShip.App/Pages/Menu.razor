@@ -18,7 +18,8 @@
     <div id="menu">
         <div id="buttons">
             <button @onclick="PlayAgainstPlayer">Play</button>
-            <button @onclick="PlayAgainstAI">Play VS AI</button>
+            <button @onclick="PlayAgainstAIEasy">Play VS AI (Easy)</button>
+            <button @onclick="PlayAgainstAIHard">Play VS AI (Hard)</button>
         </div>
     </div>
 
@@ -49,12 +50,22 @@
     }
     
     // ReSharper disable once InconsistentNaming
-    private void PlayAgainstAI()
+    private void PlayAgainstAIEasy()
     {
         GameServer.JoinQueue(new QueueSettings
         {
             Type = QueueType.AgainstAI.ToString(),
             AIDifficulty = 0
+        });
+    }
+    
+    // ReSharper disable once InconsistentNaming
+    private void PlayAgainstAIHard()
+    {
+        GameServer.JoinQueue(new QueueSettings
+        {
+            Type = QueueType.AgainstAI.ToString(),
+            AIDifficulty = 1
         });
     }
     
